@@ -17,6 +17,7 @@ namespace Domosharp.Infrastructure.Mappers
         Name = entity.Name,
         Order = entity.Order,
         Type = (HardwareType)entity.Type,
+        LastUpdate = entity.LastUpdate,
       };
   }
 }

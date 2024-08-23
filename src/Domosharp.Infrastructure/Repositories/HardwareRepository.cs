@@ -5,11 +5,13 @@ using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
 using Domosharp.Infrastructure.Mappers;
 
+using FluentValidation;
+
 using System.Data;
 
 namespace Domosharp.Infrastructure.Repositories
 {
-  public class HardwareRepository(IDbConnection connection) : IHardwareRepository
+  public class HardwareRepository(IDbConnection connection, IValidator<IHardware> validator) : IHardwareRepository
   {
     public static void CreateTable(IDbConnection connection)
     {
@@ -22,11 +24,12 @@ namespace Domosharp.Infrastructure.Repositories
 [LogLevel] INTEGER NOT NULL, 
 [Order] INTEGER NOT NULL, 
 [Configuration] TEXT NULL,
+[LastUpdate] DATETIME NOT NULL,
 CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
       cmd.ExecuteNonQuery();
     }
 
-    public int GetMaxId()
+    private int GetMaxId()
     {
       var command = connection.CreateCommand();
       command.CommandText = "SELECT MAX(ID) + 1 FROM [Hardware]";
@@ -36,10 +39,21 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
       return (int)(long)id;
     }
 
-    public Task CreateAsync(IHardware hardware, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(IHardware hardware, CancellationToken cancellationToken = default)
     {
+      var validationResult = await validator.ValidateAsync(hardware, cancellationToken);
+      if (validationResult is not null && !validationResult.IsValid)
+      {
+        var error = validationResult.Errors.First();
+        if (error.ErrorCode == "ArgumentException")
+          throw new ArgumentException(error.ErrorMessage, nameof(hardware));
+        else
+          throw new ArgumentOutOfRangeException(nameof(hardware), error.ErrorMessage);
+      }
+
       hardware.Id = GetMaxId();
-      return connection.InsertAsync(hardware.MapHardwareToEntity());
+      hardware.LastUpdate = DateTime.UtcNow;
+      await connection.InsertAsync(hardware.MapHardwareToEntity());
     }
 
     public Task<bool> DeleteAsync(int hardwareId, CancellationToken cancellationToken = default)
@@ -47,9 +61,20 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
       return connection.DeleteAsync(new HardwareEntity { Id = hardwareId });
     }
 
-    public Task<bool> UpdateAsync(IHardware hardware, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(IHardware hardware, CancellationToken cancellationToken = default)
     {
-      return connection.UpdateAsync(hardware.MapHardwareToEntity());
+      var validationResult = await validator.ValidateAsync(hardware, cancellationToken);
+      if (validationResult is not null && !validationResult.IsValid)
+      {
+        var error = validationResult.Errors.First();
+        if (error.ErrorCode == "ArgumentException")
+          throw new ArgumentException(error.ErrorMessage, nameof(hardware));
+        else
+          throw new ArgumentOutOfRangeException(nameof(hardware), error.ErrorMessage);
+      }
+
+      hardware.LastUpdate = DateTime.UtcNow;
+      return await connection.UpdateAsync(hardware.MapHardwareToEntity());
     }
 
     public async Task<IHardware?> GetAsync(int hardwareId, CancellationToken cancellationToken = default)

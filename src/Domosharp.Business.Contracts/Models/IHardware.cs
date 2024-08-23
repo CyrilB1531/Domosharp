@@ -15,6 +15,8 @@ namespace Domosharp.Business.Contracts.Models
 
     string? Configuration { get; set; }
 
+    DateTime LastUpdate { get; set; }
+
     int Order { get; set; }
   }
 }

@@ -5,14 +5,14 @@ using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
 using Domosharp.Infrastructure.Mappers;
 
-using System.Data;
-using System.Data.Common;
+using FluentValidation;
 
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Data;
+using System.Threading;
 
 namespace Domosharp.Infrastructure.Repositories;
 
-public class DeviceRepository(IDbConnection connection) : IDeviceRepository
+public class DeviceRepository(IDbConnection connection, IValidator<Device> validator) : IDeviceRepository
 {
   public static void CreateTable(IDbConnection connection)
   {
@@ -36,7 +36,7 @@ public class DeviceRepository(IDbConnection connection) : IDeviceRepository
     cmd.ExecuteNonQuery();
   }
 
-  public int GetMaxId()
+  private int GetMaxId()
   {
     var command = connection.CreateCommand();
     command.CommandText = "SELECT MAX(Id) + 1 FROM [Device]";
@@ -48,33 +48,43 @@ public class DeviceRepository(IDbConnection connection) : IDeviceRepository
 
   public async Task CreateAsync(Device device, CancellationToken cancellationToken = default)
   {
-    if (string.IsNullOrWhiteSpace(device.Name))
-      throw new ArgumentException($"{nameof(device.Name)} cannot be null or empty", nameof(device));
-    if (string.IsNullOrWhiteSpace(device.DeviceId))
-      throw new ArgumentException($"{nameof(device.DeviceId)} cannot be null or empty", nameof(device));
-    if (device.BatteryLevel < 0 || device.BatteryLevel > 100)
-      throw new ArgumentOutOfRangeException(nameof(device), $"{nameof(device.BatteryLevel)} must be between 0 and 100");
-    if (device.SignalLevel > 0)
-      throw new ArgumentOutOfRangeException(nameof(device), $"{nameof(device.SignalLevel)} must be less than 0");
-    if (device.Order < 0)
-      throw new ArgumentOutOfRangeException(nameof(device), $"{nameof(device.Order)} must be greater or equal to 0");
+    var validationResult = await validator.ValidateAsync(device, cancellationToken);
+    if (validationResult is not null && !validationResult.IsValid)
+    {
+      var error = validationResult.Errors.First();
+      if (error.ErrorCode == "ArgumentException")
+        throw new ArgumentException(error.ErrorMessage, nameof(device));
+      else
+        throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
+    }
 
     device.Id = GetMaxId();
     device.LastUpdate = DateTime.UtcNow;
     await connection.InsertAsync(device.MapDeviceToEntity());
   }
 
-  public Task<bool> DeleteAsync(int deviceId, CancellationToken cancellation = default)
+  public Task<bool> DeleteAsync(int deviceId, CancellationToken cancellationToken = default)
   {
     return connection.DeleteAsync(new DeviceEntity(deviceId));
   }
 
-  public Task<bool> UpdateAsync(Device device, CancellationToken cancellation = default)
+  public async Task<bool> UpdateAsync(Device device, CancellationToken cancellationToken = default)
   {
-    return connection.UpdateAsync(device.MapDeviceToEntity());
+    var validationResult = await validator.ValidateAsync(device, cancellationToken);
+    if (validationResult is not null && !validationResult.IsValid)
+    {
+      var error = validationResult.Errors.First();
+      if (error.ErrorCode == "ArgumentException")
+        throw new ArgumentException(error.ErrorMessage, nameof(device));
+      else
+        throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
+    }
+
+    device.LastUpdate=DateTime.UtcNow;
+    return await connection.UpdateAsync(device.MapDeviceToEntity());
   }
 
-  public async Task<Device?> GetAsync(int id, CancellationToken cancellation = default)
+  public async Task<Device?> GetAsync(int id, CancellationToken cancellationToken = default)
   {
     var result = await connection.GetAsync(new DeviceEntity() { Id = id });
     return result?.MapDeviceToDomain();

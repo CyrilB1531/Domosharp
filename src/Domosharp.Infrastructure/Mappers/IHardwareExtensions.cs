@@ -1,12 +1,6 @@
 ﻿using Domosharp.Business.Contracts.Models;
 using Domosharp.Infrastructure.Entities;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domosharp.Infrastructure.Mappers
 {
   internal static class IHardwareExtensions
@@ -24,7 +18,8 @@ namespace Domosharp.Infrastructure.Mappers
         Configuration = entity.Configuration,
         Type = (int)entity.Type,
         LogLevel = (int)entity.LogLevel,
-        Order = entity.Order
+        Order = entity.Order,
+        LastUpdate = entity.LastUpdate,
       };
     }
   }

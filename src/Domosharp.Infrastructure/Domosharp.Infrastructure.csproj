@@ -11,6 +11,7 @@
 		<PackageReference Include="DotNetCore.CAP" Version="8.2.0" />
 		<PackageReference Include="DotNetCore.CAP.InMemoryStorage" Version="8.2.0" />
 		<PackageReference Include="DotNetCore.CAP.Sqlite" Version="8.2.0" />
+		<PackageReference Include="FluentValidation" Version="11.9.2" />
 		<PackageReference Include="MQTTnet" Version="4.3.6.1152" />
 		<PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.6.1152" />
 		<PackageReference Include="Savorboard.CAP.InMemoryMessageQueue" Version="8.2.1" />

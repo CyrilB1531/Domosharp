@@ -37,4 +37,7 @@ public class HardwareEntity
 
   [Column("Configuration")]
   public string? Configuration { get; set; }
+
+  [Column("LastUpdate")]
+  public DateTime LastUpdate { get; set; }
 }
