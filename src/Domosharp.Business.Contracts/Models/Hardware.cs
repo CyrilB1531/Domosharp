@@ -4,6 +4,11 @@ namespace Domosharp.Business.Contracts.Models
 {
   public class Hardware : IHardware
   {
+    public Hardware()
+    {
+      Name = string.Empty;
+    }
+
     public int Id { get; set; }
     public string Name { get; set; }
     public bool Enabled { get; set; }

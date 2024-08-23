@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35208.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Infrastructure", "src\Domosharp.Infrastructure\Domosharp.Infrastructure.csproj", "{3004312C-417F-4310-A00C-41CEB9AFCE95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domosharp.Infrastructure.Tests", "tests\Domosharp.Infrastructure.Tests\Domosharp.Infrastructure.Tests.csproj", "{BE7E2C29-E6A1-417F-AC7C-29C08220256A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Infrastructure.Tests", "tests\Domosharp.Infrastructure.Tests\Domosharp.Infrastructure.Tests.csproj", "{BE7E2C29-E6A1-417F-AC7C-29C08220256A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01-Core", "01-Core", "{2001EA22-82C2-40FF-95DA-F1AE5F06BCBA}"
 EndProject
@@ -37,7 +37,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03-Presentation", "03-Prese
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04-Integration", "04-Integration", "{7E23958C-1630-4E0E-9C79-D07721AAD6E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domosharp.Business.Contracts", "src\Domosharp.Business.Contracts\Domosharp.Business.Contracts.csproj", "{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Business.Contracts", "src\Domosharp.Business.Contracts\Domosharp.Business.Contracts.csproj", "{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03-Workflows", "03-Workflows", "{4596CECA-58C2-4FC6-9BD5-EC8A353C003B}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +76,7 @@ Global
 		{8E02C3E0-BB81-4E59-86C0-FD1D14753B8C} = {A283508D-D7FE-4149-B603-75BE016DD488}
 		{7E23958C-1630-4E0E-9C79-D07721AAD6E8} = {A283508D-D7FE-4149-B603-75BE016DD488}
 		{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF} = {2001EA22-82C2-40FF-95DA-F1AE5F06BCBA}
+		{4596CECA-58C2-4FC6-9BD5-EC8A353C003B} = {D7F72983-C3F3-4B40-A9FA-642F8C7D44AA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {330E4D9C-3CA6-429C-B448-69BB15B84610}
