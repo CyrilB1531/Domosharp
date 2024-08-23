@@ -1,0 +1,335 @@
+﻿using Bogus;
+
+using Dapper.FastCrud;
+
+using Domosharp.Business.Contracts.Models;
+using Domosharp.Business.Contracts.Repositories;
+using Domosharp.Infrastructure.DBExtensions;
+using Domosharp.Infrastructure.Entities;
+using Domosharp.Infrastructure.Mappers;
+using Domosharp.Infrastructure.Repositories;
+using Domosharp.Infrastructure.Tests.Fakes;
+using Domosharp.Infrastructure.Validators;
+
+using FluentValidation;
+
+using Microsoft.Extensions.Logging;
+
+using System.Data;
+
+namespace Domosharp.Infrastructure.Tests.Repositories;
+
+public class HardwareRepositoryTests
+{
+  public HardwareRepositoryTests()
+  {
+    SqlliteConfigExtensions.InitializeMapper();
+  }
+
+  private static HardwareEntity CreateHardwareEntity()
+  {
+    var faker = new Faker();
+    var entity = new HardwareEntity(faker.Random.Int(1))
+    {
+      Name = faker.Random.Word(),
+      Enabled = 1,
+      Type = (int)HardwareType.Dummy,
+      LogLevel = (int)faker.PickRandom<LogLevel>(),
+      Order = faker.Random.Int(1),
+      Configuration = faker.Random.Word(),
+    };
+    return entity;
+  }
+
+  private static async Task<HardwareEntity> CreateHardwareInDatabaseAsync(IDbConnection connection)
+  {
+    var entity = CreateHardwareEntity();
+    var command = connection.CreateCommand();
+    command.CommandText = "SELECT MAX(ID) + 1 FROM [Hardware]";
+    var id = command.ExecuteScalar();
+    if (id is null || id == DBNull.Value)
+      entity.Id = 1;
+    else
+      entity.Id = (int)(long)id;
+
+    await connection.InsertAsync(entity);
+    return entity;
+  }
+
+  private static void CheckEntity(HardwareEntity? device, HardwareEntity expected)
+  {
+    Assert.NotNull(device);
+    Assert.Equal(expected.Id, device.Id);
+    Assert.Equal(expected.Name, device.Name);
+    Assert.Equal(expected.Enabled, device.Enabled);
+    Assert.Equal(expected.Type, device.Type);
+    Assert.Equal(expected.LogLevel, device.LogLevel);
+    Assert.Equal(expected.Order, device.Order);
+    Assert.Equal(expected.Configuration, device.Configuration);
+  }
+
+  [Fact]
+  public void ShouldCreateTableInDatabase()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    HardwareRepository.CreateTable(connection);
+    var command = connection.CreateCommand();
+    command.CommandText = "SELECT * FROM [Hardware]";
+    var result = command.ExecuteReader();
+    Assert.False(result.Read());
+  }
+
+  [Fact]
+  public async Task ShouldGetHardwareFromDatabase()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    HardwareRepository.CreateTable(connection);
+
+    var expected1 = await CreateHardwareInDatabaseAsync(connection);
+
+    var sut = new SutBuilder()
+    .WithIDBConnection(connection)
+    .Build();
+
+    var result = await sut.GetAsync(expected1.Id, CancellationToken.None);
+
+    Assert.NotNull(result);
+
+    CheckEntity(result.MapHardwareToEntity(), expected1);
+  }
+
+  [Fact]
+  public async Task ShouldGetHardwareFromDatabaseReturnsNull()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    HardwareRepository.CreateTable(connection);
+
+    var expected = CreateHardwareEntity();
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+    .Build();
+
+    var result = await sut.GetAsync(expected.Id, CancellationToken.None);
+
+    Assert.Null(result);
+  }
+
+  [Fact]
+  public async Task ShouldInsertFirstHardwareInDatabase()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    var expected = CreateHardwareEntity();
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var h = expected.MapToModel();
+    Assert.NotNull(h);
+
+    await sut.CreateAsync(h, CancellationToken.None);
+
+    expected.Id = h.Id;
+
+    Assert.Equal(1, expected.Id);
+
+    var result = await connection.GetAsync(new HardwareEntity(expected.Id));
+    Assert.NotNull(result);
+
+    CheckEntity(result, expected);
+  }
+
+  [Fact]
+  public async Task Create_WithoutHardwareName_ThrowsArgumentException()
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    _ = await CreateHardwareInDatabaseAsync(connection);
+    var expected = CreateHardwareEntity();
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var h = expected.MapToModel();
+    h.Name = string.Empty;
+
+    // Act & Assert
+    var result = await Assert.ThrowsAsync<ArgumentException>("hardware", async () => await sut.CreateAsync(h, CancellationToken.None));
+    Assert.Equal("Name cannot be null or empty (Parameter 'hardware')", result.Message);
+  }
+
+  [Fact]
+  public async Task Create_WithoutOrder_ThrowsArgumentOutOfRangeException()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    _ = await CreateHardwareInDatabaseAsync(connection);
+    var expected = CreateHardwareEntity();
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var h = expected.MapToModel();
+    h.Order = -1;
+
+    // Act & Assert
+    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("hardware", async () => await sut.CreateAsync(h, CancellationToken.None));
+    Assert.Equal("Order must be greater or equal to 0 (Parameter 'hardware')", result.Message);
+  }
+
+  [Fact]
+  public async Task Create_WithGoodHardware_InsertData()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    _ = await CreateHardwareInDatabaseAsync(connection);
+    var expected = CreateHardwareEntity();
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var h = expected.MapToModel();
+    Assert.NotNull(h);
+
+    await sut.CreateAsync(h, CancellationToken.None);
+
+    expected.Id = h.Id;
+
+    Assert.Equal(2, expected.Id);
+
+    var result = await connection.GetAsync(new HardwareEntity(expected.Id));
+    Assert.NotNull(result);
+
+    CheckEntity(result, expected);
+  }
+
+  [Fact]
+  public async Task Update_WithoutHardwareName_ThrowsArgumentException()
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    var ex = await CreateHardwareInDatabaseAsync(connection);
+    var expected = CreateHardwareEntity();
+    expected.Id = ex.Id;
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var h = expected.MapToModel();
+    h.Name = string.Empty;
+
+    // Act & Assert
+    var result = await Assert.ThrowsAsync<ArgumentException>("hardware", async () => await sut.UpdateAsync(h, CancellationToken.None));
+    Assert.Equal("Name cannot be null or empty (Parameter 'hardware')", result.Message);
+  }
+
+  [Fact]
+  public async Task Update_WithBadOrder_ThrowsArgumentOutOfRangeException()
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    var ex = await CreateHardwareInDatabaseAsync(connection);
+    var expected = CreateHardwareEntity();
+    expected.Id = ex.Id;
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var h = expected.MapToModel();
+    h.Order = -1;
+
+    // Act & Assert
+    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("hardware", async () => await sut.UpdateAsync(h, CancellationToken.None));
+    Assert.Equal("Order must be greater or equal to 0 (Parameter 'hardware')", result.Message);
+  }
+
+  [Fact]
+  public async Task ShouldUpdateHardwareInDatabase()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    var ex = await CreateHardwareInDatabaseAsync(connection);
+    var expected = CreateHardwareEntity();
+    expected.Id = ex.Id;
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var h = expected.MapToModel();
+    Assert.NotNull(h);
+
+    await sut.UpdateAsync(h, CancellationToken.None);
+
+    var result = await connection.GetAsync(new HardwareEntity(expected.Id));
+    Assert.NotNull(result);
+
+    CheckEntity(result, expected);
+  }
+
+  [Fact]
+  public async Task ShouldDeleteHardwareInDatabase()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    var expected = await CreateHardwareInDatabaseAsync(connection);
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    await sut.DeleteAsync(expected.Id, CancellationToken.None);
+
+    var result = await connection.GetAsync(new HardwareEntity(expected.Id));
+    Assert.Null(result);
+  }
+
+  public class SutBuilder
+  {
+    private IDbConnection _connection;
+    private readonly IValidator<IHardware> _validator;
+
+    public SutBuilder()
+    {
+      _connection = FakeDBConnectionFactory.GetConnection();
+      _validator = new HardwareValidator();
+    }
+
+    public SutBuilder WithIDBConnection(IDbConnection connection)
+    {
+      _connection = connection;
+      return this;
+    }
+
+    public IHardwareRepository Build()
+    {
+      return new HardwareRepository(_connection,  _validator);
+    }
+  }
+}

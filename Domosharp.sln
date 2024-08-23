@@ -1,0 +1,84 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35208.52
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Infrastructure", "src\Domosharp.Infrastructure\Domosharp.Infrastructure.csproj", "{3004312C-417F-4310-A00C-41CEB9AFCE95}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Infrastructure.Tests", "tests\Domosharp.Infrastructure.Tests\Domosharp.Infrastructure.Tests.csproj", "{BE7E2C29-E6A1-417F-AC7C-29C08220256A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01-Core", "01-Core", "{2001EA22-82C2-40FF-95DA-F1AE5F06BCBA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02-Infrastructure", "02-Infrastructure", "{B128E015-606D-4BD0-80A1-EB40277F4146}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03-Presentation", "03-Presentation", "{AE27FCD9-1860-4D21-88DA-9A3814D9E3DB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04-Tests", "04-Tests", "{A283508D-D7FE-4149-B603-75BE016DD488}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Common", "00-Common", "{D7F72983-C3F3-4B40-A9FA-642F8C7D44AA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01-Git", "01-Git", "{7542F20A-4312-46E4-BC95-95DDF01A3D69}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02-Documentation", "02-Documentation", "{B46A4E50-A749-40C7-82DC-4DCFF28618A7}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01-Core", "01-Core", "{FDE6BE19-7C32-4105-822F-B90983EFB640}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02-Infrastructure", "02-Infrastructure", "{C5378B22-D63A-41F1-A669-6C9466CA020B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03-Presentation", "03-Presentation", "{8E02C3E0-BB81-4E59-86C0-FD1D14753B8C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04-Integration", "04-Integration", "{7E23958C-1630-4E0E-9C79-D07721AAD6E8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Business.Contracts", "src\Domosharp.Business.Contracts\Domosharp.Business.Contracts.csproj", "{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03-Workflows", "03-Workflows", "{4596CECA-58C2-4FC6-9BD5-EC8A353C003B}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3004312C-417F-4310-A00C-41CEB9AFCE95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3004312C-417F-4310-A00C-41CEB9AFCE95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3004312C-417F-4310-A00C-41CEB9AFCE95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3004312C-417F-4310-A00C-41CEB9AFCE95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE7E2C29-E6A1-417F-AC7C-29C08220256A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE7E2C29-E6A1-417F-AC7C-29C08220256A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE7E2C29-E6A1-417F-AC7C-29C08220256A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE7E2C29-E6A1-417F-AC7C-29C08220256A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3004312C-417F-4310-A00C-41CEB9AFCE95} = {B128E015-606D-4BD0-80A1-EB40277F4146}
+		{BE7E2C29-E6A1-417F-AC7C-29C08220256A} = {C5378B22-D63A-41F1-A669-6C9466CA020B}
+		{7542F20A-4312-46E4-BC95-95DDF01A3D69} = {D7F72983-C3F3-4B40-A9FA-642F8C7D44AA}
+		{B46A4E50-A749-40C7-82DC-4DCFF28618A7} = {D7F72983-C3F3-4B40-A9FA-642F8C7D44AA}
+		{FDE6BE19-7C32-4105-822F-B90983EFB640} = {A283508D-D7FE-4149-B603-75BE016DD488}
+		{C5378B22-D63A-41F1-A669-6C9466CA020B} = {A283508D-D7FE-4149-B603-75BE016DD488}
+		{8E02C3E0-BB81-4E59-86C0-FD1D14753B8C} = {A283508D-D7FE-4149-B603-75BE016DD488}
+		{7E23958C-1630-4E0E-9C79-D07721AAD6E8} = {A283508D-D7FE-4149-B603-75BE016DD488}
+		{3A371F7A-CEE7-44ED-84E7-92ABB58FDEDF} = {2001EA22-82C2-40FF-95DA-F1AE5F06BCBA}
+		{4596CECA-58C2-4FC6-9BD5-EC8A353C003B} = {D7F72983-C3F3-4B40-A9FA-642F8C7D44AA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {330E4D9C-3CA6-429C-B448-69BB15B84610}
+	EndGlobalSection
+EndGlobal
