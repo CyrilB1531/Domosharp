@@ -16,8 +16,6 @@ using Microsoft.Extensions.Logging;
 
 using System.Data;
 
-using static Domosharp.Infrastructure.Tests.Repositories.HardwareRepositoryTests;
-
 namespace Domosharp.Infrastructure.Tests.Repositories;
 
 public class DeviceRepositoryTests
@@ -33,25 +31,8 @@ public class DeviceRepositoryTests
     // Arrange
     var sut = new SutBuilder().Build();
 
-    var device = new Faker<Device>()
-      .Rules((faker, device) =>
-      {
-        device.SignalLevel = faker.Random.Int(0, 100);
-        device.Name = string.Empty;
-        device.BatteryLevel = faker.Random.Int(0, 100);
-        device.SignalLevel = faker.Random.Int(-100, 0);
-        device.SpecificParameters = faker.Random.String2(20);
-        device.Active = faker.Random.Bool();
-        device.DeviceId = faker.Random.String2(10);
-        device.Favorite = faker.Random.Bool();
-        device.HardwareId = faker.Random.Int(1);
-        device.Id = faker.Random.Int(1);
-        device.LastUpdate = faker.Date.Recent();
-        device.Order = faker.Random.Int(1);
-        device.Protected = faker.Random.Bool();
-        device.Type = faker.PickRandom<DeviceType>();
-      })
-      .Generate();
+    var device = CreateDevice();
+    device.Name = string.Empty;
 
     // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.CreateAsync(device, CancellationToken.None));
@@ -65,25 +46,7 @@ public class DeviceRepositoryTests
     // Arrange
     var sut = new SutBuilder().Build();
 
-    var device = new Faker<Device>()
-      .Rules((faker, device) =>
-      {
-        device.SignalLevel = faker.Random.Int(0, 100);
-        device.Name = faker.Random.String2(10);
-        device.BatteryLevel = faker.Random.Int(0, 100);
-        device.SignalLevel = faker.Random.Int(-100, 0);
-        device.SpecificParameters = faker.Random.String2(20);
-        device.Active = faker.Random.Bool();
-        device.DeviceId = string.Empty;
-        device.Favorite = faker.Random.Bool();
-        device.HardwareId = faker.Random.Int(1);
-        device.Id = faker.Random.Int(1);
-        device.LastUpdate = faker.Date.Recent();
-        device.Order = faker.Random.Int(1);
-        device.Protected = faker.Random.Bool();
-        device.Type = faker.PickRandom<DeviceType>();
-      })
-      .Generate();
+    var device = CreateDevice(deviceId: string.Empty);
 
     // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.CreateAsync(device, CancellationToken.None));
@@ -98,25 +61,8 @@ public class DeviceRepositoryTests
     // Arrange
     var sut = new SutBuilder().Build();
 
-    var device = new Faker<Device>()
-      .Rules((faker, device) =>
-      {
-        device.SignalLevel = faker.Random.Int(0, 100);
-        device.Name = faker.Random.String2(10);
-        device.BatteryLevel = batteryLevel;
-        device.SignalLevel = faker.Random.Int(-100, 0);
-        device.SpecificParameters = faker.Random.String2(20);
-        device.Active = faker.Random.Bool();
-        device.DeviceId = faker.Random.String2(10);
-        device.Favorite = faker.Random.Bool();
-        device.HardwareId = faker.Random.Int(1);
-        device.Id = faker.Random.Int(1);
-        device.LastUpdate = faker.Date.Recent();
-        device.Order = faker.Random.Int(1);
-        device.Protected = faker.Random.Bool();
-        device.Type = faker.PickRandom<DeviceType>();
-      })
-      .Generate();
+    var device = CreateDevice();
+    device.BatteryLevel = batteryLevel;
 
     // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.CreateAsync(device, CancellationToken.None));
@@ -129,25 +75,8 @@ public class DeviceRepositoryTests
     // Arrange
     var sut = new SutBuilder().Build();
 
-    var device = new Faker<Device>()
-      .Rules((faker, device) =>
-      {
-        device.SignalLevel = faker.Random.Int(0, 100);
-        device.Name = faker.Random.String2(10);
-        device.BatteryLevel = faker.Random.Int(0, 100);
-        device.SignalLevel = 1;
-        device.SpecificParameters = faker.Random.String2(20);
-        device.Active = faker.Random.Bool();
-        device.DeviceId = faker.Random.String2(10);
-        device.Favorite = faker.Random.Bool();
-        device.HardwareId = faker.Random.Int(1);
-        device.Id = faker.Random.Int(1);
-        device.LastUpdate = faker.Date.Recent();
-        device.Order = faker.Random.Int(1);
-        device.Protected = faker.Random.Bool();
-        device.Type = faker.PickRandom<DeviceType>();
-      })
-      .Generate();
+    var device = CreateDevice();
+    device.SignalLevel = 1;
 
     // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.CreateAsync(device, CancellationToken.None));
@@ -160,25 +89,8 @@ public class DeviceRepositoryTests
     // Arrange
     var sut = new SutBuilder().Build();
 
-    var device = new Faker<Device>()
-      .Rules((faker, device) =>
-      {
-        device.SignalLevel = faker.Random.Int(0, 100);
-        device.Name = faker.Random.String2(10);
-        device.BatteryLevel = faker.Random.Int(0, 100);
-        device.SignalLevel = faker.Random.Int(-100, 0);
-        device.SpecificParameters = faker.Random.String2(20);
-        device.Active = faker.Random.Bool();
-        device.DeviceId = faker.Random.String2(10);
-        device.Favorite = faker.Random.Bool();
-        device.HardwareId = faker.Random.Int(1);
-        device.Id = faker.Random.Int(1);
-        device.LastUpdate = faker.Date.Recent();
-        device.Order = -1;
-        device.Protected = faker.Random.Bool();
-        device.Type = faker.PickRandom<DeviceType>();
-      })
-      .Generate();
+    var device = CreateDevice();
+    device.Order = -1;
 
     // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.CreateAsync(device, CancellationToken.None));
@@ -194,25 +106,7 @@ public class DeviceRepositoryTests
     var hardware = GetHardware();
     await connection.InsertAsync(hardware);
 
-    var device = new Faker<Device>()
-      .Rules((faker, device) =>
-      {
-        device.SignalLevel = faker.Random.Int(0, 100);
-        device.Name = faker.Random.String2(10);
-        device.BatteryLevel = faker.Random.Int(0, 100);
-        device.SignalLevel = faker.Random.Int(-100, 0);
-        device.SpecificParameters = faker.Random.String2(20);
-        device.Active = faker.Random.Bool();
-        device.DeviceId = faker.Random.String2(10);
-        device.Favorite = faker.Random.Bool();
-        device.HardwareId = hardware.Id;
-        device.Id = faker.Random.Int(1);
-        device.LastUpdate = faker.Date.Recent();
-        device.Order = faker.Random.Int(1);
-        device.Protected = faker.Random.Bool();
-        device.Type = faker.PickRandom<DeviceType>();
-      })
-      .Generate();
+    var device = CreateDevice(hardwareId: hardware.Id);
 
     // Act
     await sut.CreateAsync(device, CancellationToken.None);
@@ -247,25 +141,7 @@ public class DeviceRepositoryTests
     var hardware = GetHardware();
     await connection.InsertAsync(hardware);
 
-    var device = new Faker<Device>()
-      .Rules((faker, device) =>
-      {
-        device.SignalLevel = faker.Random.Int(0, 100);
-        device.Name = faker.Random.String2(10);
-        device.BatteryLevel = faker.Random.Int(0, 100);
-        device.SignalLevel = faker.Random.Int(-100, 0);
-        device.SpecificParameters = faker.Random.String2(20);
-        device.Active = faker.Random.Bool();
-        device.DeviceId = faker.Random.String2(10);
-        device.Favorite = faker.Random.Bool();
-        device.HardwareId = hardware.Id;
-        device.Id = faker.Random.Int(1);
-        device.LastUpdate = faker.Date.Recent();
-        device.Order = faker.Random.Int(1);
-        device.Protected = faker.Random.Bool();
-        device.Type = faker.PickRandom<DeviceType>();
-      })
-      .Generate(2).ToArray();
+    var device = new []{ CreateDevice(hardwareId: hardware.Id), CreateDevice(hardwareId: hardware.Id)};
 
     // Act
     await sut.CreateAsync(device[0], CancellationToken.None);
@@ -295,6 +171,7 @@ public class DeviceRepositoryTests
   [Fact]
   public async Task GetDevice_ReturnsDevice()
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
     var sut = new SutBuilder(connection).Build();
 
@@ -302,16 +179,19 @@ public class DeviceRepositoryTests
 
     var expected1 = await CreateDeviceInDatabaseAsync(connection, hardware);
 
+    // Act
     var result = await sut.GetAsync(expected1.Id, CancellationToken.None);
 
+    // Assert
     Assert.NotNull(result);
 
-    CheckEntity(result.MapDeviceToEntity(), expected1, true);
+    CheckEntity(result.MapDeviceToEntity(result.Id, result.LastUpdate), expected1, true);
   }
 
   [Fact]
   public async Task Update_WithoutDeviceName_ThrowsArgumentException()
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
 
     var sut = new SutBuilder(connection).Build();
@@ -322,6 +202,7 @@ public class DeviceRepositoryTests
     expected.Id = ex.Id;
     expected.Name = string.Empty;
 
+    // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
     Assert.Equal("Name cannot be null or empty (Parameter 'device')", result.Message);
   }
@@ -329,6 +210,7 @@ public class DeviceRepositoryTests
   [Fact]
   public async Task Update_WithoutDeviceId_ThrowsArgumentException()
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
 
     var sut = new SutBuilder(connection).Build();
@@ -339,6 +221,7 @@ public class DeviceRepositoryTests
     expected.Id = ex.Id;
     expected.DeviceId = string.Empty;
 
+    // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
     Assert.Equal("DeviceId cannot be null or empty (Parameter 'device')", result.Message);
   }
@@ -348,6 +231,7 @@ public class DeviceRepositoryTests
   [InlineData(101)]
   public async Task Update_WithBadBatteryLevel_ThrowsArgumentOutOfRangeException(int batteryLevel)
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
 
     var sut = new SutBuilder(connection).Build();
@@ -358,6 +242,7 @@ public class DeviceRepositoryTests
     expected.Id = ex.Id;
     expected.BatteryLevel = batteryLevel;
 
+    // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
     Assert.Equal("BatteryLevel must be between 0 and 100 (Parameter 'device')", result.Message);
   }
@@ -365,6 +250,7 @@ public class DeviceRepositoryTests
   [Fact]
   public async Task Update_WithBadSignalLevel_ThrowsArgumentOutOfRangeException()
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
 
     var sut = new SutBuilder(connection).Build();
@@ -375,6 +261,7 @@ public class DeviceRepositoryTests
     expected.Id = ex.Id;
     expected.SignalLevel = 1;
 
+    // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
     Assert.Equal("SignalLevel must be less than 0 (Parameter 'device')", result.Message);
   }
@@ -382,6 +269,7 @@ public class DeviceRepositoryTests
   [Fact]
   public async Task Update_WithBadOrder_ThrowsArgumentOutOfRangeException()
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
 
     var sut = new SutBuilder(connection).Build();
@@ -392,14 +280,15 @@ public class DeviceRepositoryTests
     expected.Id = ex.Id;
     expected.Order = -1;
 
+    // Act & Assert
     var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
     Assert.Equal("Order must be greater or equal to 0 (Parameter 'device')", result.Message);
   }
 
-
   [Fact]
   public async Task Update_WithGoodDevice_UpdateData()
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
 
     var sut = new SutBuilder(connection).Build();
@@ -409,8 +298,10 @@ public class DeviceRepositoryTests
     var expected = CreateDeviceEntity(hardware);
     expected.Id = ex.Id;
 
+    // Act
     var resultA = await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None);
 
+    // Assert
     Assert.True(resultA);
     var result = await connection.GetAsync(new DeviceEntity(expected.Id));
     Assert.NotNull(result);
@@ -419,16 +310,19 @@ public class DeviceRepositoryTests
   }
 
   [Fact]
-  public async Task ShouldDeleteDeviceInDatabase()
+  public async Task Delete_RemoveDeviceInDatabase()
   {
+    // Arrange
     var connection = FakeDBConnectionFactory.GetConnection();
     var sut = new SutBuilder(connection).Build();
 
     var hardware = await CreateHardwareInDatabaseAsync(connection);
     var expected = await CreateDeviceInDatabaseAsync(connection, hardware);
 
-
+    // Act
     var resultA = await sut.DeleteAsync(expected.Id, CancellationToken.None);
+
+    // Assert
     Assert.True(resultA);
 
     var result = await connection.GetAsync(new DeviceEntity(expected.Id));
@@ -504,7 +398,7 @@ public class DeviceRepositoryTests
     Assert.Equal(expected.SignalLevel, device.SignalLevel);
     Assert.Equal(expected.BatteryLevel, device.BatteryLevel);
     Assert.Equal(expected.SpecificParameters, device.SpecificParameters);
-    if(checkDate)
+    if (checkDate)
       Assert.Equal(expected.LastUpdate, device.LastUpdate);
     else
       Assert.True(DateTime.UtcNow.AddSeconds(-1) < device.LastUpdate);
@@ -535,5 +429,27 @@ public class DeviceRepositoryTests
     }
 
     public DeviceRepository Build() => new(_connection, _validator);
+  }
+
+  private static Device CreateDevice(int? id = null, int? hardwareId = null, string? deviceId = null)
+  {
+    var faker = new Faker();
+
+    return new()
+    {
+      Id = id ?? faker.Random.Int(1),
+      HardwareId = hardwareId ?? faker.Random.Int(1),
+      DeviceId = deviceId ?? faker.Random.String2(10),
+      Name = faker.Random.String2(20),
+      BatteryLevel = faker.Random.Int(0, 100),
+      SignalLevel = faker.Random.Int(-100, 0),
+      SpecificParameters = faker.Random.String2(20),
+      Active = faker.Random.Bool(),
+      Favorite = faker.Random.Bool(),
+      LastUpdate = faker.Date.Recent(),
+      Order = faker.Random.Int(1),
+      Protected = faker.Random.Bool(),
+      Type = faker.PickRandom<DeviceType>(),
+    };
   }
 }

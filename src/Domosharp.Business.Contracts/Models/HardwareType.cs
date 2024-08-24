@@ -1,10 +1,9 @@
-﻿namespace Domosharp.Business.Contracts.Models
+﻿namespace Domosharp.Business.Contracts.Models;
+
+public enum HardwareType
 {
-  public enum HardwareType
-  {
-    System = 0,
-    Dummy,
-    Domosharp,
-    MQTTTasmota,
-  }
+  System = 0,
+  Dummy,
+  Domosharp,
+  MQTTTasmota,
 }

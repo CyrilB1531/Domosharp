@@ -1,12 +1,11 @@
 ﻿using Dapper.FastCrud;
 
-namespace Domosharp.Infrastructure.DBExtensions
+namespace Domosharp.Infrastructure.DBExtensions;
+
+public static class SqlliteConfigExtensions
 {
-  public static class SqlliteConfigExtensions
+  public static void InitializeMapper()
   {
-    public static void InitializeMapper()
-    {
-      OrmConfiguration.DefaultDialect = SqlDialect.SqLite;
-    }
+    OrmConfiguration.DefaultDialect = SqlDialect.SqLite;
   }
 }

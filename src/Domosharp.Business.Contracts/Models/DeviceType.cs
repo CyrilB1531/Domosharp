@@ -1,9 +1,8 @@
-﻿namespace Domosharp.Business.Contracts.Models
+﻿namespace Domosharp.Business.Contracts.Models;
+
+public enum DeviceType
 {
-  public enum DeviceType
-  {
-    LightSwitch = 0,
-    Blinds,
-    Sensor
-  }
+  LightSwitch = 0,
+  Blinds,
+  Sensor
 }
