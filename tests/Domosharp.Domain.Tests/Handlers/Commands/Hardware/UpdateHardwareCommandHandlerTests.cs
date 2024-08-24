@@ -33,9 +33,9 @@ public class UpdateHardwareCommandHandlerTests
     var hardware = new Business.Contracts.Models.Hardware()
     {
       Id = command.Id,
-      Name = command.Name,
-      Enabled = command.Enabled,
-      Order = command.Order
+      Name = faker.Random.String2(10),
+      Enabled = !command.Enabled,
+      Order = command.Order + 1
     };
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
@@ -54,6 +54,52 @@ public class UpdateHardwareCommandHandlerTests
     Assert.True(result);
 
     await hardwareRepository.Received(1).UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
+  }
+
+  [Fact]
+  public async Task UpdateHandler_WithNoChanges_ReturnsFalse()
+  {
+    // Arrange
+    var faker = new Faker();
+
+    var command = new UpdateHardwareCommand()
+    {
+      Id = faker.Random.Int(1),
+      Name = faker.Random.Words(),
+      Enabled = faker.Random.Bool(),
+      Type = faker.PickRandom<HardwareType>(),
+      LogLevel = faker.PickRandom<LogLevel>(),
+      Order = faker.Random.Int(1),
+      Configuration = faker.Random.Words()
+    };
+
+    var hardware = new Business.Contracts.Models.Hardware()
+    {
+      Id = command.Id,
+      Name = command.Name,
+      Enabled = command.Enabled,
+      Order = command.Order,
+      Configuration = command.Configuration,
+      LogLevel = command.LogLevel,
+      Type = command.Type
+    };
+
+    var hardwareRepository = Substitute.For<IHardwareRepository>();
+    hardwareRepository.GetAsync(command.Id, CancellationToken.None)
+      .Returns(hardware);
+    hardwareRepository.UpdateAsync(Arg.Is<IHardware>(a => a.Id == command.Id), CancellationToken.None).Returns(true);
+
+    var sut = new SutBuilder()
+        .WithHardwareRepository(hardwareRepository)
+        .Build();
+
+    // Act
+    var result = await sut.Handle(command, CancellationToken.None);
+
+    // Assert
+    Assert.False(result);
+
+    await hardwareRepository.Received(0).UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
   }
 
   [Fact]
@@ -80,6 +126,7 @@ public class UpdateHardwareCommandHandlerTests
         .WithHardwareRepository(hardwareRepository)
         .Build();
 
+    // Act & Assert
     Assert.False(await sut.Handle(command, CancellationToken.None));
 
     await hardwareRepository.Received(0).UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
@@ -88,6 +135,7 @@ public class UpdateHardwareCommandHandlerTests
   [Fact]
   public async Task UpdateHandler_WithUpdateFails_ReturnsFalse()
   {
+    // Arrange
     var faker = new Faker();
 
     var command = new UpdateHardwareCommand()
@@ -115,48 +163,53 @@ public class UpdateHardwareCommandHandlerTests
         .WithHardwareRepository(hardwareRepository)
         .Build();
 
+    // Act
     var result = await sut.Handle(command, CancellationToken.None);
 
+    // Assert
     Assert.False(result);
 
     await hardwareRepository.Received(1).UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
   }
 
-    [Fact]
-    public async Task ShouldUpdateHardwareReturnsFalseIfUpdateRepositoryFails()
+  [Fact]
+  public async Task UpdateHardware_WithRepositoryFails_ReturnsFalse()
+  {
+    // Arrange
+    var faker = new Faker();
+
+    var command = new UpdateHardwareCommand()
     {
-      var faker = new Faker();
+      Id = faker.Random.Int(1),
+      Name = faker.Random.Words(),
+      Enabled = faker.Random.Bool(),
+      Type = faker.PickRandom<HardwareType>(),
+      LogLevel = faker.PickRandom<LogLevel>(),
+      Order = faker.Random.Int(1),
+      Configuration = faker.Random.Words()
+    };
 
-      var command = new UpdateHardwareCommand()
-      {
-        Id = faker.Random.Int(1),
-        Name = faker.Random.Words(),
-        Enabled = faker.Random.Bool(),
-        Type = faker.PickRandom<HardwareType>(),
-        LogLevel = faker.PickRandom<LogLevel>(),
-        Order = faker.Random.Int(1),
-        Configuration = faker.Random.Words()
-      };
+    var hardwareRepository = Substitute.For<IHardwareRepository>();
+    hardwareRepository.GetAsync(command.Id, CancellationToken.None).Returns((IHardware?)new Business.Contracts.Models.Hardware()
+    {
+      Id = command.Id,
+      Name = command.Name,
+      Enabled = command.Enabled,
+      Order = command.Order
+    });
 
-      var hardwareRepository = Substitute.For<IHardwareRepository>();
-      hardwareRepository.GetAsync(command.Id, CancellationToken.None).Returns((IHardware?)new Business.Contracts.Models.Hardware()
-      {
-        Id = command.Id,
-        Name = command.Name,
-        Enabled = command.Enabled,
-        Order = command.Order
-      });
+    var sut = new SutBuilder()
+        .WithHardwareRepository(hardwareRepository)
+        .Build();
 
-      var sut = new SutBuilder()
-          .WithHardwareRepository(hardwareRepository)
-          .Build();
+    // Act
+    var result = await sut.Handle(command, CancellationToken.None);
 
-      var result = await sut.Handle(command, CancellationToken.None);
+    // Assert
+    Assert.False(result);
 
-      Assert.False(result);
-
-      await hardwareRepository.Received(1).UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
-    }
+    await hardwareRepository.Received(1).UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
+  }
 
   private class SutBuilder
   {
