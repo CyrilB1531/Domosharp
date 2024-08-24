@@ -21,7 +21,7 @@ using System.Text.Json.Serialization;
 
 namespace Domosharp.Api;
 
-public static class Program
+public partial class Program
 {
   public static async Task Main(string[] args)
  {
@@ -62,9 +62,12 @@ public static class Program
 
     SqlliteConfigExtensions.InitializeMapper();
     services.AddSingleton(configuration);
-    services.AddSingleton<IDbConnection>(new SQLiteConnection(
-      configuration.GetConnectionString("sql") ?? string.Empty
-      ));
+    var connection = new SQLiteConnection(configuration.GetConnectionString("sql") ?? string.Empty);
+    await connection.OpenAsync();
+    HardwareRepository.CreateTable(connection);
+    DeviceRepository.CreateTable(connection);
+
+    services.AddSingleton<IDbConnection>(connection);
 
     services.AddTransient<IValidator<Device>, DeviceValidator>();
     services.AddTransient<IValidator<IHardware>, HardwareValidator>();
