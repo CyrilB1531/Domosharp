@@ -21,7 +21,9 @@ using System.Text.Json.Serialization;
 
 namespace Domosharp.Api;
 
+#pragma warning disable S1118 // Utility classes should not have public constructors
 public partial class Program
+#pragma warning restore S1118 // Utility classes should not have public constructors
 {
   public static async Task Main(string[] args)
  {
