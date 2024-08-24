@@ -6,26 +6,13 @@ using System.Runtime.CompilerServices;
 namespace Domosharp.Infrastructure.Entities;
 
 [Table("Device")]
-internal class DeviceEntity
+internal record DeviceEntity
 {
   public DeviceEntity()
   {
-    Id = 0;
-    HardwareId = 0;
-    DeviceId = string.Empty;
-    Name = string.Empty;
-    Active = 0;
-    Order = 0;
-    DeviceType = 0;
-    Favorite = 0;
-    SignalLevel = 0;
-    BatteryLevel = 0;
-    LastUpdate = DateTime.Now;
-    Protected = 0;
-    SpecificParameters = string.Empty;
   }
 
-  public DeviceEntity(int id) : this()
+  public DeviceEntity(int id)
   {
     Id = id;
   }
@@ -46,10 +33,10 @@ internal class DeviceEntity
   public int HardwareId { get; set; }
 
   [Column("DeviceId")]
-  public string DeviceId { get; set; }
+  public string DeviceId { get; set; } = string.Empty;
 
   [Column("Name")]
-  public string Name { get; set; }
+  public string Name { get; set; } = string.Empty;
 
   [Column("Active")]
   public int Active { get; set; }
@@ -74,6 +61,7 @@ internal class DeviceEntity
 
   [Column("Protected")]
   public int Protected { get; set; }
+
   [Column("SpecificParameters")]
   public string? SpecificParameters { get; set; }
 }

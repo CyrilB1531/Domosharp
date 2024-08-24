@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Domosharp.Infrastructure.Validators;
 
-internal class HardwareValidator : AbstractValidator<IHardware>
+public class HardwareValidator : AbstractValidator<IHardware>
 {
   public HardwareValidator()
   {
