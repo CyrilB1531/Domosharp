@@ -8,7 +8,6 @@ using Domosharp.Infrastructure.Mappers;
 using FluentValidation;
 
 using System.Data;
-using System.Threading;
 
 namespace Domosharp.Infrastructure.Repositories;
 
@@ -51,16 +50,14 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
     var validationResult = await validator.ValidateAsync(device, cancellationToken);
     if (validationResult is not null && !validationResult.IsValid)
     {
-      var error = validationResult.Errors.First();
+      var error = validationResult.Errors[0];
       if (error.ErrorCode == "ArgumentException")
         throw new ArgumentException(error.ErrorMessage, nameof(device));
       else
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
 
-    device.Id = GetMaxId();
-    device.LastUpdate = DateTime.UtcNow;
-    await connection.InsertAsync(device.MapDeviceToEntity());
+    await connection.InsertAsync(device.MapDeviceToEntity(GetMaxId(), DateTime.UtcNow));
   }
 
   public Task<bool> DeleteAsync(int deviceId, CancellationToken cancellationToken = default)
@@ -73,15 +70,14 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
     var validationResult = await validator.ValidateAsync(device, cancellationToken);
     if (validationResult is not null && !validationResult.IsValid)
     {
-      var error = validationResult.Errors.First();
+      var error = validationResult.Errors[0];
       if (error.ErrorCode == "ArgumentException")
         throw new ArgumentException(error.ErrorMessage, nameof(device));
       else
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
 
-    device.LastUpdate=DateTime.UtcNow;
-    return await connection.UpdateAsync(device.MapDeviceToEntity());
+    return await connection.UpdateAsync(device.MapDeviceToEntity(device.Id, DateTime.UtcNow));
   }
 
   public async Task<Device?> GetAsync(int id, CancellationToken cancellationToken = default)

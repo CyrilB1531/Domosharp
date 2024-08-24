@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Domosharp.Business.Contracts.Models;
+﻿namespace Domosharp.Business.Contracts.Models;
 
 public record Device
 {
@@ -11,16 +9,11 @@ public record Device
     Name = string.Empty;
   }
 
-  public Device(int id) : this()
-  {
-    Id = id;
-  }
+  public int Id { get; init; }
 
-  public int Id { get; set; }
+  public int HardwareId { get; init; }
 
-  public int HardwareId { get; set; }
-
-  public string DeviceId { get; set; }
+  public string DeviceId { get; init; }
 
   public string Name { get; set; }
 
@@ -36,7 +29,7 @@ public record Device
 
   public int Order { get; set; }
 
-  public DateTime LastUpdate { get; set; }
+  public DateTime LastUpdate { get; init; }
 
   public bool Protected { get; set; }
 

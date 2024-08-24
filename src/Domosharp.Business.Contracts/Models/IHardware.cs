@@ -1,22 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace Domosharp.Business.Contracts.Models
+namespace Domosharp.Business.Contracts.Models;
+
+public interface IHardware
 {
-  public interface IHardware
-  {
-    public int Id { get; set; }
-    string Name { get; set; }
+  public int Id { get; }
+  string Name { get; set; }
 
-    bool Enabled { get; set; }
+  bool Enabled { get; set; }
 
-    HardwareType Type { get; set; }
+  HardwareType Type { get; set; }
 
-    LogLevel LogLevel { get; set; }
+  LogLevel LogLevel { get; set; }
 
-    string? Configuration { get; set; }
+  string? Configuration { get; set; }
 
-    DateTime LastUpdate { get; set; }
+  DateTime LastUpdate { get; }
 
-    int Order { get; set; }
-  }
+  int Order { get; set; }
 }

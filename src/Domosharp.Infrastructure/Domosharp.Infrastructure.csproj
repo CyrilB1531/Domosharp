@@ -6,6 +6,10 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Dapper.FastCrud" Version="3.3.2" />
 		<PackageReference Include="DotNetCore.CAP" Version="8.2.0" />

@@ -4,14 +4,13 @@ using System.ComponentModel.DataAnnotations;
 namespace Domosharp.Infrastructure.Entities;
 
 [Table("Hardware")]
-public class HardwareEntity
+public record HardwareEntity
 {
   public HardwareEntity()
   {
-    Name = string.Empty;
   }
 
-  public HardwareEntity(int id) : this()
+  public HardwareEntity(int id)
   {
     Id = id;
   }
@@ -21,7 +20,7 @@ public class HardwareEntity
   public int Id { get; set; }
 
   [Column("Name")]
-  public string Name { get; set; }
+  public string Name { get; set; } = string.Empty;
 
   [Column("Enabled")]
   public int Enabled { get; set; }

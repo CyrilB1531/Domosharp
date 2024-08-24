@@ -69,10 +69,13 @@ public class HardwareRepositoryTests
   }
 
   [Fact]
-  public void ShouldCreateTableInDatabase()
+  public void CreateTable_SetTableInDatabase()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
+    // Act
     HardwareRepository.CreateTable(connection);
+    // Assert
     var command = connection.CreateCommand();
     command.CommandText = "SELECT * FROM [Hardware]";
     var result = command.ExecuteReader();
@@ -80,8 +83,9 @@ public class HardwareRepositoryTests
   }
 
   [Fact]
-  public async Task ShouldGetHardwareFromDatabase()
+  public async Task GetHardware_GetDataFromDatabase()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
     HardwareRepository.CreateTable(connection);
 
@@ -91,16 +95,19 @@ public class HardwareRepositoryTests
     .WithIDBConnection(connection)
     .Build();
 
+    // Act
     var result = await sut.GetAsync(expected1.Id, CancellationToken.None);
 
+    // Assert
     Assert.NotNull(result);
 
-    CheckEntity(result.MapHardwareToEntity(), expected1);
+    CheckEntity(result.MapHardwareToEntity(result.Id, result.LastUpdate), expected1);
   }
 
   [Fact]
-  public async Task ShouldGetHardwareFromDatabaseReturnsNull()
+  public async Task GetHardware_WithoutData_ReturnsNull()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
     HardwareRepository.CreateTable(connection);
 
@@ -110,14 +117,17 @@ public class HardwareRepositoryTests
         .WithIDBConnection(connection)
     .Build();
 
+    // Act
     var result = await sut.GetAsync(expected.Id, CancellationToken.None);
 
+    // Assert
     Assert.Null(result);
   }
 
   [Fact]
-  public async Task ShouldInsertFirstHardwareInDatabase()
+  public async Task Insert_WithNoHardwareInDatabase_SetIdOne()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
 
     HardwareRepository.CreateTable(connection);
@@ -131,11 +141,12 @@ public class HardwareRepositoryTests
     var h = expected.MapToModel();
     Assert.NotNull(h);
 
+    // Act
     await sut.CreateAsync(h, CancellationToken.None);
 
+    // Assert
+    Assert.Equal(1, h.Id);
     expected.Id = h.Id;
-
-    Assert.Equal(1, expected.Id);
 
     var result = await connection.GetAsync(new HardwareEntity(expected.Id));
     Assert.NotNull(result);
@@ -169,6 +180,7 @@ public class HardwareRepositoryTests
   [Fact]
   public async Task Create_WithoutOrder_ThrowsArgumentOutOfRangeException()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
 
     HardwareRepository.CreateTable(connection);
@@ -191,6 +203,7 @@ public class HardwareRepositoryTests
   [Fact]
   public async Task Create_WithGoodHardware_InsertData()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
 
     HardwareRepository.CreateTable(connection);
@@ -205,8 +218,10 @@ public class HardwareRepositoryTests
     var h = expected.MapToModel();
     Assert.NotNull(h);
 
+    // Act
     await sut.CreateAsync(h, CancellationToken.None);
 
+    // Assert
     expected.Id = h.Id;
 
     Assert.Equal(2, expected.Id);
@@ -266,8 +281,9 @@ public class HardwareRepositoryTests
   }
 
   [Fact]
-  public async Task ShouldUpdateHardwareInDatabase()
+  public async Task Update_GoodHardware_SetDataInDatabase()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
 
     HardwareRepository.CreateTable(connection);
@@ -283,8 +299,10 @@ public class HardwareRepositoryTests
     var h = expected.MapToModel();
     Assert.NotNull(h);
 
+    // Act
     await sut.UpdateAsync(h, CancellationToken.None);
 
+    // Assert
     var result = await connection.GetAsync(new HardwareEntity(expected.Id));
     Assert.NotNull(result);
 
@@ -292,8 +310,9 @@ public class HardwareRepositoryTests
   }
 
   [Fact]
-  public async Task ShouldDeleteHardwareInDatabase()
+  public async Task Delete_RemoveDataInDatabase()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
 
     HardwareRepository.CreateTable(connection);
@@ -304,10 +323,54 @@ public class HardwareRepositoryTests
         .WithIDBConnection(connection)
         .Build();
 
+    // Act
     await sut.DeleteAsync(expected.Id, CancellationToken.None);
 
+    // Assert
     var result = await connection.GetAsync(new HardwareEntity(expected.Id));
     Assert.Null(result);
+  }
+
+  [Fact]
+  public async Task ShouldGetHardwaresFromDatabase()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    var expected1 = await CreateHardwareInDatabaseAsync(connection);
+    var expected2 = await CreateHardwareInDatabaseAsync(connection);
+
+    var sut = new SutBuilder()
+        .WithIDBConnection(connection)
+        .Build();
+
+    var result = await sut.GetListAsync(CancellationToken.None);
+
+    Assert.Equal(2, result.Count());
+    Assert.Equal(1, result.Count(a => a is not null && a.Id == expected1.Id));
+    Assert.Equal(1, result.Count(a => a is not null && a.Id == expected2.Id));
+
+    var result1 = result.First(a => a is not null && a.Id == expected1.Id);
+    var result2 = result.First(a => a is not null && a.Id == expected2.Id);
+    CheckEntity(result1.MapHardwareToEntity(result1.Id, result1.LastUpdate), expected1);
+    CheckEntity(result2.MapHardwareToEntity(result2.Id, result2.LastUpdate), expected2);
+  }
+
+  [Fact]
+  public async Task ShouldGetHardwaresFromDatabaseReturnsEmptyList()
+  {
+    using var connection = FakeDBConnectionFactory.GetConnection();
+
+    HardwareRepository.CreateTable(connection);
+
+    var expected = CreateHardwareEntity();
+
+    var sut = new SutBuilder().WithIDBConnection(connection).Build();
+
+    var result = await sut.GetListAsync(CancellationToken.None);
+
+    Assert.Empty(result);
   }
 
   public class SutBuilder
