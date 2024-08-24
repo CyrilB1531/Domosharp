@@ -1,4 +1,5 @@
 ﻿using Microsoft.OpenApi.Models;
+
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 using System.Text.RegularExpressions;
@@ -24,7 +25,7 @@ public class ReApplyOptionalRouteParameterOperationFilter : IOperationFilter
     if (httpMethodWithOptional.Template is null)
       return;
 
-    var matches = Regex.Matches(httpMethodWithOptional.Template, regex);
+    var matches = Regex.Matches(httpMethodWithOptional.Template, regex, RegexOptions.None, TimeSpan.FromSeconds(1));
 
     foreach (Match match in matches.Cast<Match>())
     {

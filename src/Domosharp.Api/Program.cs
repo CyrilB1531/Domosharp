@@ -130,7 +130,6 @@ public partial class Program
       webBind = "*";
     var webPort = configuration.GetValue<int?>("webPort") ?? 8080;
     return $"http://{webBind}:{webPort}";
-
   }
 
   private static string? GetSSLUri(IConfiguration configuration)
@@ -139,7 +138,7 @@ public partial class Program
     if (string.IsNullOrEmpty(sslWebBind))
       return null;
     var sslWebPort = configuration.GetValue<int?>("sslWebPort") ?? 8443;
-    return $"http://{sslWebBind}:{sslWebPort}";
+    return $"https://{sslWebBind}:{sslWebPort}";
 
   }
 }
