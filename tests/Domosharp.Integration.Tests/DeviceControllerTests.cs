@@ -1,22 +1,21 @@
-using Domosharp.Api.Models;
-
+﻿using Domosharp.Api.Models;
 using Newtonsoft.Json;
 using System.Net;
 
 namespace Domosharp.Integration.Tests;
 
-public class HardwareControllerTests
+public class DeviceControllerTests
 {
   [Fact]
   [Trait("Category", "Integration")]
-  public async Task GetAllHardwares_ReturnsEmptyArray()
+  public async Task GetAllDevices_WithUnknownHardware_ReturnsEmptyArray()
   {
     // Arrange
     var server = new DomosharpWebApplication();
     var client = server.CreateClient();
 
     // Act
-    var response = await client.GetAsync("/api/v1/hardware");
+    var response = await client.GetAsync("/api/v1/device/hardware/1");
 
     // Assert
     Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -24,12 +23,12 @@ public class HardwareControllerTests
     var responseString = await response.Content.ReadAsStringAsync();
     Assert.NotNull(responseString);
     Assert.NotEmpty(responseString);
-    var hardwares = JsonConvert.DeserializeObject<IEnumerable<HardwareResponse>>(responseString);
-    Assert.NotNull(hardwares);
+    var devices = JsonConvert.DeserializeObject<IEnumerable<DeviceResponse>>(responseString);
+    Assert.NotNull(devices);
     client.Dispose();
     await server.DisposeAsync();
 
-    Assert.Empty(hardwares);
+    Assert.Empty(devices);
   }
 
 }

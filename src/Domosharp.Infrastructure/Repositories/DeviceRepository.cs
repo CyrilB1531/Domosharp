@@ -85,4 +85,10 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
     var result = await connection.GetAsync(new DeviceEntity() { Id = id });
     return result?.MapDeviceToDomain();
   }
+
+  public async Task<IEnumerable<Device>> GetListAsync(int hardwareId, CancellationToken cancellation = default)
+  {
+    var result = await connection.FindAsync<DeviceEntity>(statement => statement.Where($"{nameof(Device.HardwareId):C} = {nameof(hardwareId):P}").WithParameters(new { hardwareId }));
+    return result.Select(a => a.MapDeviceToDomain());
+  }
 }

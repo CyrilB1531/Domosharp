@@ -26,6 +26,23 @@ public class DeviceRepositoryTests
   }
 
   [Fact]
+  public void CreateTable_SetTableInDatabase()
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    HardwareRepository.CreateTable(connection);
+
+    // Act
+    DeviceRepository.CreateTable(connection);
+
+    // Assert
+    var command = connection.CreateCommand();
+    command.CommandText = "SELECT * FROM [Device]";
+    var result = command.ExecuteReader();
+    Assert.False(result.Read());
+  }
+
+  [Fact]
   public async Task Create_WithoutDeviceName_ThrowsArgumentException()
   {
     // Arrange
@@ -186,6 +203,29 @@ public class DeviceRepositoryTests
     Assert.NotNull(result);
 
     CheckEntity(result.MapDeviceToEntity(result.Id, result.LastUpdate), expected1, true);
+  }
+
+  [Fact]
+  public async Task GetDevices_WithHardàareId_ReturnsDevices()
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    var sut = new SutBuilder(connection).Build();
+
+    var hardware = await CreateHardwareInDatabaseAsync(connection);
+
+    var expected1 = await CreateDeviceInDatabaseAsync(connection, hardware);
+    var hardware2 = await CreateHardwareInDatabaseAsync(connection);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware2);
+
+    // Act
+    var result = await sut.GetListAsync(expected1.HardwareId, CancellationToken.None);
+
+    // Assert
+    Assert.Single(result);
+
+    var item = result.First();
+    CheckEntity(item.MapDeviceToEntity(item.Id, item.LastUpdate), expected1, true);
   }
 
   [Fact]
@@ -386,7 +426,7 @@ public class DeviceRepositoryTests
     return entity;
   }
 
-  private static void CheckEntity(DeviceEntity device, DeviceEntity expected, bool checkDate = false)
+  private static void CheckEntity(DeviceEntity device, DeviceEntity expected, bool checkDeviceDate = false)
   {
     Assert.Equal(expected.Id, device.Id);
     Assert.Equal(expected.Name, device.Name);
@@ -398,7 +438,7 @@ public class DeviceRepositoryTests
     Assert.Equal(expected.SignalLevel, device.SignalLevel);
     Assert.Equal(expected.BatteryLevel, device.BatteryLevel);
     Assert.Equal(expected.SpecificParameters, device.SpecificParameters);
-    if (checkDate)
+    if (checkDeviceDate)
       Assert.Equal(expected.LastUpdate, device.LastUpdate);
     else
       Assert.True(DateTime.UtcNow.AddSeconds(-1) < device.LastUpdate);

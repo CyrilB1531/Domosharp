@@ -1,15 +1,15 @@
 ﻿using Bogus;
 
-using Domosharp.Business.Contracts.Commands.Hardware;
+using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
-using Domosharp.Business.Implementation.Handlers.Commands.Hardware;
+using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 using Microsoft.Extensions.Logging;
 
 using NSubstitute;
 
-namespace Domosharp.Domain.Tests.Handlers.Commands.Hardware;
+namespace Domosharp.Domain.Tests.Handlers.Commands.Hardwares;
 
 public class CreateHardwareCommandHandlerTests
 {

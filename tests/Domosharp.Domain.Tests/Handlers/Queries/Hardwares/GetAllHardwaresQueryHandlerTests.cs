@@ -1,13 +1,13 @@
 ﻿using Bogus;
 
 using Domosharp.Business.Contracts.Models;
-using Domosharp.Business.Contracts.Queries.Hardware;
+using Domosharp.Business.Contracts.Queries.Hardwares;
 using Domosharp.Business.Contracts.Repositories;
-using Domosharp.Business.Implementation.Handlers.Queries.Hardware;
+using Domosharp.Business.Implementation.Handlers.Queries.Hardwares;
 
 using NSubstitute;
 
-namespace Domosharp.Domain.Tests.Handlers.Commands.Hardware;
+namespace Domosharp.Domain.Tests.Handlers.Queries.Hardwares;
 
 public class GetAllHardwaresQueryHandlerTests
 {
@@ -21,7 +21,7 @@ public class GetAllHardwaresQueryHandlerTests
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetListAsync(Arg.Any<CancellationToken>())
-        .Returns(a => [ new Business.Contracts.Models.Hardware(){
+        .Returns(a => [ new Hardware(){
                Id= faker.Random.Int(1),
                Name= faker.Random.Words(),
                Enabled = faker.Random.Bool(),
@@ -44,13 +44,11 @@ public class GetAllHardwaresQueryHandlerTests
   public async Task GetAllHardwaresHandler_WithoutHardware_ReturnsEmptyList()
   {
     // Arrange
-    var faker = new Faker();
-
     var command = new GetAllHardwaresQuery();
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetListAsync(Arg.Any<CancellationToken>())
-        .Returns(a => new List<IHardware>());
+        .Returns(a => []);
 
     var sut = new SutBuilder()
         .WithHardwareRepository(hardwareRepository)

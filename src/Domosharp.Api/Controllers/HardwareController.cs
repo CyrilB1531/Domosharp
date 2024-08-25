@@ -1,8 +1,8 @@
 ﻿using Asp.Versioning;
 
 using Domosharp.Api.Models;
-using Domosharp.Business.Contracts.Commands.Hardware;
-using Domosharp.Business.Contracts.Queries.Hardware;
+using Domosharp.Business.Contracts.Commands.Hardwares;
+using Domosharp.Business.Contracts.Queries.Hardwares;
 
 using MediatR;
 
@@ -28,7 +28,7 @@ public class HardwareController(IMediator mediator) : ControllerBase
       Configuration = createHardwareRequest.Configuration
     };
     await mediator.Send(command, cancellationToken);
-    return new OkResult();
+    return Ok();
   }
 
   [HttpGet]
@@ -36,7 +36,7 @@ public class HardwareController(IMediator mediator) : ControllerBase
   {
     var query = new GetAllHardwaresQuery();
     var result = await mediator.Send(query, cancellationToken);
-    return new OkObjectResult(result.Select(a => new HardwareResponse(a)).ToList());
+    return Ok(result.Select(a => new HardwareResponse(a)).ToList());
   }
 
   [HttpPatch("{id}")]
@@ -47,16 +47,15 @@ public class HardwareController(IMediator mediator) : ControllerBase
       Id = id,
       Name = hardware.Name!,
       Enabled = hardware.Enabled!.Value,
-      Type = hardware.Type!.Value,
       LogLevel = hardware.LogLevel!.Value,
       Order = hardware.Order!.Value,
       Configuration = hardware.Configuration
     };
     var result = await mediator.Send(command, cancellationToken);
     if (result)
-      return new OkResult();
+      return Ok();
     else
-      return new BadRequestResult();
+      return BadRequest();
   }
 
   [HttpDelete("{hardwareId}")]
@@ -69,8 +68,8 @@ public class HardwareController(IMediator mediator) : ControllerBase
 
     var result = await mediator.Send(command, cancellationToken);
     if (result)
-      return new OkResult();
+      return Ok();
     else
-      return new BadRequestResult();
+      return BadRequest();
   }
 }

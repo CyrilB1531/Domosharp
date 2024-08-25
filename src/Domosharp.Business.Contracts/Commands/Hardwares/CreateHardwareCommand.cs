@@ -1,13 +1,13 @@
 ﻿using Domosharp.Business.Contracts.Models;
+
 using MediatR;
+
 using Microsoft.Extensions.Logging;
 
-namespace Domosharp.Business.Contracts.Commands.Hardware;
+namespace Domosharp.Business.Contracts.Commands.Hardwares;
 
-public record UpdateHardwareCommand : IRequest<bool>
+public record CreateHardwareCommand : IRequest
 {
-  public int Id { get; init; }
-
   public string Name { get; init; } = string.Empty;
 
   public bool Enabled { get; init; }

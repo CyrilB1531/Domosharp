@@ -1,9 +1,9 @@
 ﻿using Bogus;
 
-using Domosharp.Business.Contracts.Commands.Hardware;
+using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
-using Domosharp.Business.Implementation.Handlers.Commands.Hardware;
+using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +24,6 @@ public class UpdateHardwareCommandHandlerTests
       Id = faker.Random.Int(1),
       Name = faker.Random.Words(),
       Enabled = faker.Random.Bool(),
-      Type = faker.PickRandom<HardwareType>(),
       LogLevel = faker.PickRandom<LogLevel>(),
       Order = faker.Random.Int(1),
       Configuration = faker.Random.Words()
@@ -67,7 +66,6 @@ public class UpdateHardwareCommandHandlerTests
       Id = faker.Random.Int(1),
       Name = faker.Random.Words(),
       Enabled = faker.Random.Bool(),
-      Type = faker.PickRandom<HardwareType>(),
       LogLevel = faker.PickRandom<LogLevel>(),
       Order = faker.Random.Int(1),
       Configuration = faker.Random.Words()
@@ -80,8 +78,7 @@ public class UpdateHardwareCommandHandlerTests
       Enabled = command.Enabled,
       Order = command.Order,
       Configuration = command.Configuration,
-      LogLevel = command.LogLevel,
-      Type = command.Type
+      LogLevel = command.LogLevel
     };
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
@@ -113,7 +110,6 @@ public class UpdateHardwareCommandHandlerTests
       Id = faker.Random.Int(1),
       Name = faker.Random.Words(),
       Enabled = faker.Random.Bool(),
-      Type = faker.PickRandom<HardwareType>(),
       LogLevel = faker.PickRandom<LogLevel>(),
       Order = faker.Random.Int(1),
       Configuration = faker.Random.Words()
@@ -143,7 +139,6 @@ public class UpdateHardwareCommandHandlerTests
       Id = faker.Random.Int(1),
       Name = faker.Random.Words(),
       Enabled = faker.Random.Bool(),
-      Type = faker.PickRandom<HardwareType>(),
       LogLevel = faker.PickRandom<LogLevel>(),
       Order = faker.Random.Int(1),
       Configuration = faker.Random.Words()
@@ -183,7 +178,6 @@ public class UpdateHardwareCommandHandlerTests
       Id = faker.Random.Int(1),
       Name = faker.Random.Words(),
       Enabled = faker.Random.Bool(),
-      Type = faker.PickRandom<HardwareType>(),
       LogLevel = faker.PickRandom<LogLevel>(),
       Order = faker.Random.Int(1),
       Configuration = faker.Random.Words()

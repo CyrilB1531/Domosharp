@@ -5,6 +5,7 @@ namespace Domosharp.Business.Contracts.Models;
 public interface IHardware
 {
   public int Id { get; }
+
   string Name { get; set; }
 
   bool Enabled { get; set; }

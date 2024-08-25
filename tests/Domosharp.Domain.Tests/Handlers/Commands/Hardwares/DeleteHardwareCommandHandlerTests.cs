@@ -1,13 +1,13 @@
 ﻿using Bogus;
 
-using Domosharp.Business.Contracts.Commands.Hardware;
+using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
-using Domosharp.Business.Implementation.Handlers.Commands.Hardware;
+using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 using NSubstitute;
 
-namespace Domosharp.Domain.Tests.Handlers.Commands.Hardware;
+namespace Domosharp.Domain.Tests.Handlers.Commands.Hardwares;
 
 public class DeleteHardwareCommandHandlerTests
 {

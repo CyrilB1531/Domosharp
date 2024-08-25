@@ -1,9 +1,9 @@
 ﻿using Domosharp.Business.Contracts.Models;
-using Domosharp.Business.Contracts.Queries.Hardware;
+using Domosharp.Business.Contracts.Queries.Hardwares;
 using Domosharp.Business.Contracts.Repositories;
 using MediatR;
 
-namespace Domosharp.Business.Implementation.Handlers.Queries.Hardware;
+namespace Domosharp.Business.Implementation.Handlers.Queries.Hardwares;
 
 public class GetAllHardwaresQueryHandler(IHardwareRepository hardwareRepository) : IRequestHandler<GetAllHardwaresQuery, IEnumerable<IHardware>>
 {

@@ -1,9 +1,9 @@
-﻿using Domosharp.Business.Contracts.Commands.Hardware;
+﻿using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Repositories;
 
 using MediatR;
 
-namespace Domosharp.Business.Implementation.Handlers.Commands.Hardware;
+namespace Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 public class UpdateHardwareCommandHandler(
     IHardwareRepository hardwareRepository
@@ -24,11 +24,6 @@ public class UpdateHardwareCommandHandler(
     if (hardware.Enabled != request.Enabled)
     {
       hardware.Enabled = request.Enabled;
-      hasChanges = true;
-    }
-    if (hardware.Type != request.Type)
-    {
-      hardware.Type = request.Type;
       hasChanges = true;
     }
     if (hardware.LogLevel != request.LogLevel)

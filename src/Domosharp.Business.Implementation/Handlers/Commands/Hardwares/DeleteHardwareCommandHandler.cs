@@ -1,8 +1,8 @@
-﻿using Domosharp.Business.Contracts.Commands.Hardware;
+﻿using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Repositories;
 using MediatR;
 
-namespace Domosharp.Business.Implementation.Handlers.Commands.Hardware;
+namespace Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 public class DeleteHardwareCommandHandler(
     IHardwareRepository hardwareRepository

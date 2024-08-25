@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Domosharp.Business.Contracts.Commands.Hardware;
+namespace Domosharp.Business.Contracts.Commands.Hardwares;
 
 public record DeleteHardwareCommand : IRequest<bool>
 {
