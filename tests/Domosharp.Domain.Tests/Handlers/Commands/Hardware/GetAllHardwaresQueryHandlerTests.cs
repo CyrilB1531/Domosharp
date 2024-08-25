@@ -44,13 +44,11 @@ public class GetAllHardwaresQueryHandlerTests
   public async Task GetAllHardwaresHandler_WithoutHardware_ReturnsEmptyList()
   {
     // Arrange
-    var faker = new Faker();
-
     var command = new GetAllHardwaresQuery();
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetListAsync(Arg.Any<CancellationToken>())
-        .Returns(a => new List<IHardware>());
+        .Returns(a => []);
 
     var sut = new SutBuilder()
         .WithHardwareRepository(hardwareRepository)

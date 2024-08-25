@@ -364,8 +364,6 @@ public class HardwareRepositoryTests
 
     HardwareRepository.CreateTable(connection);
 
-    var expected = CreateHardwareEntity();
-
     var sut = new SutBuilder().WithIDBConnection(connection).Build();
 
     var result = await sut.GetListAsync(CancellationToken.None);

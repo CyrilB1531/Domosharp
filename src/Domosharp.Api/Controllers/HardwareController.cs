@@ -28,7 +28,7 @@ public class HardwareController(IMediator mediator) : ControllerBase
       Configuration = createHardwareRequest.Configuration
     };
     await mediator.Send(command, cancellationToken);
-    return new OkResult();
+    return Ok();
   }
 
   [HttpGet]
@@ -36,7 +36,7 @@ public class HardwareController(IMediator mediator) : ControllerBase
   {
     var query = new GetAllHardwaresQuery();
     var result = await mediator.Send(query, cancellationToken);
-    return new OkObjectResult(result.Select(a => new HardwareResponse(a)).ToList());
+    return Ok(result.Select(a => new HardwareResponse(a)).ToList());
   }
 
   [HttpPatch("{id}")]
@@ -54,9 +54,9 @@ public class HardwareController(IMediator mediator) : ControllerBase
     };
     var result = await mediator.Send(command, cancellationToken);
     if (result)
-      return new OkResult();
+      return Ok();
     else
-      return new BadRequestResult();
+      return BadRequest();
   }
 
   [HttpDelete("{hardwareId}")]
@@ -69,8 +69,8 @@ public class HardwareController(IMediator mediator) : ControllerBase
 
     var result = await mediator.Send(command, cancellationToken);
     if (result)
-      return new OkResult();
+      return Ok();
     else
-      return new BadRequestResult();
+      return BadRequest();
   }
 }
