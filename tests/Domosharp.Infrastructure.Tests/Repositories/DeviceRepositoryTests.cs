@@ -206,7 +206,7 @@ public class DeviceRepositoryTests
   }
 
   [Fact]
-  public async Task GetDevices_WithHard�areId_ReturnsDevices()
+  public async Task GetDevices_WithHardareId_ReturnsDevices()
   {
     // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();

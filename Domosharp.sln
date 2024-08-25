@@ -50,9 +50,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domosharp.Integration.Tests", "tests\Domosharp.Integration.Tests\Domosharp.Integration.Tests.csproj", "{512BBABD-2DD2-49DB-B8DD-F38BEDEF06E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03-Github", "03-Github", "{FC06C596-F9D5-4D30-A650-0FF37337B797}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\build.yml = .github\workflows\build.yml
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
