@@ -1,6 +1,4 @@
-﻿using Domosharp.Business.Contracts.Models;
-
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Domosharp.Api.Models;
 
@@ -11,9 +9,6 @@ public record UpdateHardwareRequest
 
   [JsonRequired]
   public bool? Enabled { get; init; }
-
-  [JsonRequired]
-  public HardwareType? Type { get; init; }
 
   [JsonRequired]
   public LogLevel? LogLevel { get; init; }

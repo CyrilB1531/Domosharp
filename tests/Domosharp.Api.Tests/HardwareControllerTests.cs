@@ -2,9 +2,10 @@ using Bogus;
 
 using Domosharp.Api.Controllers;
 using Domosharp.Api.Models;
-using Domosharp.Business.Contracts.Commands.Hardware;
+using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Models;
-using Domosharp.Business.Contracts.Queries.Hardware;
+using Domosharp.Business.Contracts.Queries.Hardwares;
+
 using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
@@ -127,8 +128,7 @@ public class HardwareControllerTests
       Enabled = faker.Random.Bool(),
       LogLevel = faker.PickRandom<LogLevel>(),
       Name = faker.Random.Word(),
-      Order = faker.Random.Int(1),
-      Type = faker.PickRandom<HardwareType>()
+      Order = faker.Random.Int(1)
     }, faker.Random.Int(1), CancellationToken.None);
 
     // Assert
@@ -154,8 +154,7 @@ public class HardwareControllerTests
       Enabled = faker.Random.Bool(),
       LogLevel = faker.PickRandom<LogLevel>(),
       Name = faker.Random.Word(),
-      Order = faker.Random.Int(1),
-      Type = faker.PickRandom<HardwareType>()
+      Order = faker.Random.Int(1)
     }, faker.Random.Int(1), CancellationToken.None);
 
     // Assert

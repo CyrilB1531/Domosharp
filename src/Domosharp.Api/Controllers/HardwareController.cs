@@ -1,8 +1,8 @@
 ﻿using Asp.Versioning;
 
 using Domosharp.Api.Models;
-using Domosharp.Business.Contracts.Commands.Hardware;
-using Domosharp.Business.Contracts.Queries.Hardware;
+using Domosharp.Business.Contracts.Commands.Hardwares;
+using Domosharp.Business.Contracts.Queries.Hardwares;
 
 using MediatR;
 
@@ -47,7 +47,6 @@ public class HardwareController(IMediator mediator) : ControllerBase
       Id = id,
       Name = hardware.Name!,
       Enabled = hardware.Enabled!.Value,
-      Type = hardware.Type!.Value,
       LogLevel = hardware.LogLevel!.Value,
       Order = hardware.Order!.Value,
       Configuration = hardware.Configuration

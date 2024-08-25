@@ -45,7 +45,7 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
     return (int)(long)id;
   }
 
-  public async Task CreateAsync(Device device, CancellationToken cancellationToken = default)
+  public async Task<Device?> CreateAsync(Device device, CancellationToken cancellationToken = default)
   {
     var validationResult = await validator.ValidateAsync(device, cancellationToken);
     if (validationResult is not null && !validationResult.IsValid)
@@ -57,7 +57,9 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
 
-    await connection.InsertAsync(device.MapDeviceToEntity(GetMaxId(), DateTime.UtcNow));
+    var entity = device.MapToEntity(GetMaxId(), DateTime.UtcNow);
+    await connection.InsertAsync(entity);
+    return entity.MapToModel();
   }
 
   public Task<bool> DeleteAsync(int deviceId, CancellationToken cancellationToken = default)
@@ -77,12 +79,18 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
 
-    return await connection.UpdateAsync(device.MapDeviceToEntity(device.Id, DateTime.UtcNow));
+    return await connection.UpdateAsync(device.MapToEntity(device.Id, DateTime.UtcNow));
   }
 
   public async Task<Device?> GetAsync(int id, CancellationToken cancellationToken = default)
   {
     var result = await connection.GetAsync(new DeviceEntity() { Id = id });
-    return result?.MapDeviceToDomain();
+    return result?.MapToModel();
+  }
+
+  public async Task<IEnumerable<Device>> GetListAsync(int hardwareId, CancellationToken cancellation = default)
+  {
+    var result = await connection.FindAsync<DeviceEntity>(statement => statement.Where($"{nameof(Device.HardwareId):C} = {nameof(hardwareId):P}").WithParameters(new { hardwareId }));
+    return result.Select(a => a.MapToModel());
   }
 }

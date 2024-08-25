@@ -26,6 +26,23 @@ public class DeviceRepositoryTests
   }
 
   [Fact]
+  public void CreateTable_SetTableInDatabase()
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    HardwareRepository.CreateTable(connection);
+
+    // Act
+    DeviceRepository.CreateTable(connection);
+
+    // Assert
+    var command = connection.CreateCommand();
+    command.CommandText = "SELECT * FROM [Device]";
+    var result = command.ExecuteReader();
+    Assert.False(result.Read());
+  }
+
+  [Fact]
   public async Task Create_WithoutDeviceName_ThrowsArgumentException()
   {
     // Arrange
@@ -141,7 +158,7 @@ public class DeviceRepositoryTests
     var hardware = GetHardware();
     await connection.InsertAsync(hardware);
 
-    var device = new []{ CreateDevice(hardwareId: hardware.Id), CreateDevice(hardwareId: hardware.Id)};
+    var device = new[] { CreateDevice(hardwareId: hardware.Id), CreateDevice(hardwareId: hardware.Id) };
 
     // Act
     await sut.CreateAsync(device[0], CancellationToken.None);
@@ -185,7 +202,30 @@ public class DeviceRepositoryTests
     // Assert
     Assert.NotNull(result);
 
-    CheckEntity(result.MapDeviceToEntity(result.Id, result.LastUpdate), expected1, true);
+    CheckEntity(result.MapToEntity(result.Id, result.LastUpdate), expected1, true);
+  }
+
+  [Fact]
+  public async Task GetDevices_WithHardareId_ReturnsDevices()
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    var sut = new SutBuilder(connection).Build();
+
+    var hardware = await CreateHardwareInDatabaseAsync(connection);
+
+    var expected1 = await CreateDeviceInDatabaseAsync(connection, hardware);
+    var hardware2 = await CreateHardwareInDatabaseAsync(connection);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware2);
+
+    // Act
+    var result = await sut.GetListAsync(expected1.HardwareId, CancellationToken.None);
+
+    // Assert
+    Assert.Single(result);
+
+    var item = result.First();
+    CheckEntity(item.MapToEntity(item.Id, item.LastUpdate), expected1, true);
   }
 
   [Fact]
@@ -203,7 +243,7 @@ public class DeviceRepositoryTests
     expected.Name = string.Empty;
 
     // Act & Assert
-    var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
+    var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.UpdateAsync(expected.MapToModel(), CancellationToken.None));
     Assert.Equal("Name cannot be null or empty (Parameter 'device')", result.Message);
   }
 
@@ -222,7 +262,7 @@ public class DeviceRepositoryTests
     expected.DeviceId = string.Empty;
 
     // Act & Assert
-    var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
+    var result = await Assert.ThrowsAsync<ArgumentException>("device", async () => await sut.UpdateAsync(expected.MapToModel(), CancellationToken.None));
     Assert.Equal("DeviceId cannot be null or empty (Parameter 'device')", result.Message);
   }
 
@@ -243,7 +283,7 @@ public class DeviceRepositoryTests
     expected.BatteryLevel = batteryLevel;
 
     // Act & Assert
-    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
+    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapToModel(), CancellationToken.None));
     Assert.Equal("BatteryLevel must be between 0 and 100 (Parameter 'device')", result.Message);
   }
 
@@ -262,7 +302,7 @@ public class DeviceRepositoryTests
     expected.SignalLevel = 1;
 
     // Act & Assert
-    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
+    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapToModel(), CancellationToken.None));
     Assert.Equal("SignalLevel must be less than 0 (Parameter 'device')", result.Message);
   }
 
@@ -281,7 +321,7 @@ public class DeviceRepositoryTests
     expected.Order = -1;
 
     // Act & Assert
-    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None));
+    var result = await Assert.ThrowsAsync<ArgumentOutOfRangeException>("device", async () => await sut.UpdateAsync(expected.MapToModel(), CancellationToken.None));
     Assert.Equal("Order must be greater or equal to 0 (Parameter 'device')", result.Message);
   }
 
@@ -299,7 +339,7 @@ public class DeviceRepositoryTests
     expected.Id = ex.Id;
 
     // Act
-    var resultA = await sut.UpdateAsync(expected.MapDeviceToDomain(), CancellationToken.None);
+    var resultA = await sut.UpdateAsync(expected.MapToModel(), CancellationToken.None);
 
     // Assert
     Assert.True(resultA);
@@ -386,7 +426,7 @@ public class DeviceRepositoryTests
     return entity;
   }
 
-  private static void CheckEntity(DeviceEntity device, DeviceEntity expected, bool checkDate = false)
+  private static void CheckEntity(DeviceEntity device, DeviceEntity expected, bool checkDeviceDate = false)
   {
     Assert.Equal(expected.Id, device.Id);
     Assert.Equal(expected.Name, device.Name);
@@ -398,7 +438,7 @@ public class DeviceRepositoryTests
     Assert.Equal(expected.SignalLevel, device.SignalLevel);
     Assert.Equal(expected.BatteryLevel, device.BatteryLevel);
     Assert.Equal(expected.SpecificParameters, device.SpecificParameters);
-    if (checkDate)
+    if (checkDeviceDate)
       Assert.Equal(expected.LastUpdate, device.LastUpdate);
     else
       Assert.True(DateTime.UtcNow.AddSeconds(-1) < device.LastUpdate);

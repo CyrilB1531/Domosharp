@@ -1,4 +1,5 @@
 ﻿using Domosharp.Business.Contracts.Models;
+
 using FluentValidation;
 
 namespace Domosharp.Infrastructure.Validators;
