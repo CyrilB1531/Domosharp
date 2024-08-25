@@ -101,7 +101,7 @@ public class HardwareRepositoryTests
     // Assert
     Assert.NotNull(result);
 
-    CheckEntity(result.MapHardwareToEntity(result.Id, result.LastUpdate), expected1);
+    CheckEntity(result.MapToEntity(result.Id, result.LastUpdate), expected1);
   }
 
   [Fact]
@@ -353,8 +353,8 @@ public class HardwareRepositoryTests
 
     var result1 = result.First(a => a is not null && a.Id == expected1.Id);
     var result2 = result.First(a => a is not null && a.Id == expected2.Id);
-    CheckEntity(result1.MapHardwareToEntity(result1.Id, result1.LastUpdate), expected1);
-    CheckEntity(result2.MapHardwareToEntity(result2.Id, result2.LastUpdate), expected2);
+    CheckEntity(result1.MapToEntity(result1.Id, result1.LastUpdate), expected1);
+    CheckEntity(result2.MapToEntity(result2.Id, result2.LastUpdate), expected2);
   }
 
   [Fact]
@@ -390,7 +390,7 @@ public class HardwareRepositoryTests
 
     public IHardwareRepository Build()
     {
-      return new HardwareRepository(_connection,  _validator);
+      return new HardwareRepository(_connection, _validator);
     }
   }
 }

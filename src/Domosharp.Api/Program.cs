@@ -3,6 +3,7 @@ using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
+using Domosharp.Infrastructure.HostedServices;
 using Domosharp.Infrastructure.DBExtensions;
 using Domosharp.Infrastructure.Repositories;
 using Domosharp.Infrastructure.Validators;
@@ -18,6 +19,8 @@ using Savorboard.CAP.InMemoryMessageQueue;
 using System.Data;
 using System.Data.SQLite;
 using System.Text.Json.Serialization;
+using Domosharp.Business.Contracts.HostedServices;
+using Domosharp.Business.Implementation.HostedServices;
 
 namespace Domosharp.Api;
 
@@ -26,7 +29,7 @@ public partial class Program
 #pragma warning restore S1118 // Utility classes should not have public constructors
 {
   public static async Task Main(string[] args)
- {
+  {
     var builder = WebApplication.CreateBuilder(args);
 
     var configuration = new ConfigurationBuilder()
@@ -75,7 +78,8 @@ public partial class Program
     services.AddTransient<IValidator<IHardware>, HardwareValidator>();
 
     services.AddTransient<IDeviceRepository, DeviceRepository>();
-    services.AddTransient<IHardwareRepository, HardwareRepository>();
+    services.AddTransient<IHardwareWorker, HardwareWorker>();
+    services.AddHardwareServices();
 
     services.AddMediatR(a =>
     {
@@ -84,13 +88,17 @@ public partial class Program
     });
 
     services.AddCap(x =>
-  {
-    x.UseSqlite(configuration.GetConnectionString("sql"));
-    x.UseInMemoryStorage();
-    x.UseDashboard();
-    x.UseInMemoryMessageQueue();
-  });
+    {
+      x.UseSqlite(configuration.GetConnectionString("sql"));
+      x.UseInMemoryStorage();
+      x.UseDashboard();
+      x.UseInMemoryMessageQueue();
+    });
 
+    services.AddSingleton<MainWorker>();
+    services.AddSingleton<IMainWorker>(p => p.GetRequiredService<MainWorker>());
+
+    services.AddHostedService(p => p.GetRequiredService<MainWorker>());
 
     builder.Logging.ClearProviders();
 
@@ -119,6 +127,10 @@ public partial class Program
     app.UseAuthorization();
 
     app.MapControllers();
+
+    var worker = app.Services.GetService<MainWorker>();
+    if (worker is not null)
+      await worker.StartAsync(CancellationToken.None);
 
     await app.RunAsync();
   }

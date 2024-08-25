@@ -1,6 +1,7 @@
 using Domosharp.Api.Models;
 
 using Newtonsoft.Json;
+
 using System.Net;
 
 namespace Domosharp.Integration.Tests;

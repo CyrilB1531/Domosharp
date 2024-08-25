@@ -2,6 +2,7 @@
 using Domosharp.Business.Contracts.Queries.Devices;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Business.Implementation.Handlers.Queries.Devices;
+
 using NSubstitute;
 
 namespace Domosharp.Domain.Tests.Handlers.Queries.Devices;

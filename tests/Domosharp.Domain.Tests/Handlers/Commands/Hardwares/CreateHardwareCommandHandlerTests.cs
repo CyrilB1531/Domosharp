@@ -1,6 +1,7 @@
 ﻿using Bogus;
 
 using Domosharp.Business.Contracts.Commands.Hardwares;
+using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
@@ -33,8 +34,11 @@ public class CreateHardwareCommandHandlerTests
     hardwareRepository.UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>())
       .Returns(true);
 
+    var mainWorker = Substitute.For<IMainWorker>();
+
     var sut = new SutBuilder()
         .WithHardwareRepository(hardwareRepository)
+        .WithMainWorker(mainWorker)
         .Build();
 
     // Act
@@ -42,15 +46,18 @@ public class CreateHardwareCommandHandlerTests
 
     // Assert
     await hardwareRepository.Received(1).CreateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
+    mainWorker.Received(1).AddHardware(Arg.Any<IHardware>());
   }
 
   private class SutBuilder
   {
     private IHardwareRepository _hardwareRepository;
+    private IMainWorker _mainWorker;
 
     public SutBuilder()
     {
       _hardwareRepository = Substitute.For<IHardwareRepository>();
+      _mainWorker = Substitute.For<IMainWorker>();
     }
 
     public SutBuilder WithHardwareRepository(IHardwareRepository hardwareRepository)
@@ -59,9 +66,15 @@ public class CreateHardwareCommandHandlerTests
       return this;
     }
 
+    public SutBuilder WithMainWorker(IMainWorker mainWorker)
+    {
+      _mainWorker = mainWorker;
+      return this;
+    }
+
     public CreateHardwareCommandHandler Build()
     {
-      return new CreateHardwareCommandHandler(_hardwareRepository);
+      return new CreateHardwareCommandHandler(_hardwareRepository, _mainWorker);
     }
   }
 }

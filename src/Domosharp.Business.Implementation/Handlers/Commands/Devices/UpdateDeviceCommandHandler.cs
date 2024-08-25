@@ -1,5 +1,4 @@
 ﻿using Domosharp.Business.Contracts.Commands.Devices;
-using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 
 using MediatR;

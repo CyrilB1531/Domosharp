@@ -1,4 +1,5 @@
 ﻿using Domosharp.Business.Contracts.Commands.Hardwares;
+using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Repositories;
 
 using MediatR;
@@ -6,7 +7,8 @@ using MediatR;
 namespace Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 public class UpdateHardwareCommandHandler(
-    IHardwareRepository hardwareRepository
+    IHardwareRepository hardwareRepository,
+    IMainWorker mainWorker
   ) : IRequestHandler<UpdateHardwareCommand, bool>
 {
   public async Task<bool> Handle(UpdateHardwareCommand request, CancellationToken cancellationToken)
@@ -45,6 +47,9 @@ public class UpdateHardwareCommandHandler(
     if (!hasChanges)
       return false;
 
-    return await hardwareRepository.UpdateAsync(hardware, cancellationToken);
+    if (!await hardwareRepository.UpdateAsync(hardware, cancellationToken))
+      return false;
+    mainWorker.UpdateHardware(hardware);
+    return true;
   }
 }

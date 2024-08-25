@@ -5,7 +5,7 @@ namespace Domosharp.Infrastructure.Mappers;
 
 internal static class IHardwareExtensions
 {
-  internal static HardwareEntity? MapHardwareToEntity(this IHardware? entity, int id, DateTime lastUpdate)
+  internal static HardwareEntity? MapToEntity(this IHardware? entity, int id, DateTime lastUpdate)
   {
     if (entity is null)
       return null;

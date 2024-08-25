@@ -1,5 +1,5 @@
-﻿using Domosharp.Business.Contracts.Models;
-using MediatR;
+﻿using MediatR;
+
 using Microsoft.Extensions.Logging;
 
 namespace Domosharp.Business.Contracts.Commands.Hardwares;

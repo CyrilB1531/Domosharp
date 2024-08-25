@@ -1,21 +1,12 @@
 ﻿using Asp.Versioning;
 
 using Domosharp.Api.Models;
-using Domosharp.Api.Validators;
 using Domosharp.Business.Contracts.Commands.Devices;
-using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Queries.Devices;
-
-using DotNetCore.CAP.Messages;
 
 using MediatR;
 
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-
-using Swashbuckle.AspNetCore.Annotations;
-
-using System.Linq.Expressions;
 
 namespace Domosharp.Api.Controllers;
 
@@ -76,7 +67,7 @@ public class DeviceController(IMediator mediator) : ControllerBase
       Protected = request.Protected!.Value,
       SignalLevel = request.SignalLevel!.Value,
       SpecificParameters = request.SpecificParameters
-    }; 
+    };
     var result = await mediator.Send(command, cancellationToken);
     if (result)
       return Ok();

@@ -42,7 +42,7 @@ public class CreateDeviceCommandHandlerTests
     hardwareRepository.GetAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
         .Returns(a =>
         {
-          return new Business.Contracts.Models.Hardware()
+          return new Hardware()
           {
             Id = a.ArgAt<int>(0),
             Name = faker.Random.Word(),
