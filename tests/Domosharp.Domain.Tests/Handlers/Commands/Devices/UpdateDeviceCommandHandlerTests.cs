@@ -1,8 +1,10 @@
 ﻿using Bogus;
+
 using Domosharp.Business.Contracts.Commands.Devices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Business.Implementation.Handlers.Commands.Devices;
+
 using NSubstitute;
 
 namespace Domosharp.Domain.Tests.Handlers.Commands.Devices;
@@ -39,17 +41,17 @@ public class UpdateDeviceCommandHandlerTests
         {
           Id = a.Arg<int>(),
           Active = !command.Active,
-          BatteryLevel = command.BatteryLevel+1,
-          SignalLevel = command.SignalLevel-1,
+          BatteryLevel = command.BatteryLevel + 1,
+          SignalLevel = command.SignalLevel - 1,
           LastUpdate = faker.Date.Recent(),
-          SpecificParameters = command.SpecificParameters+"1",
+          SpecificParameters = command.SpecificParameters + "1",
           DeviceId = faker.Random.String2(5),
           Favorite = !command.Favorite,
           HardwareId = 1,
           Name = command.Name + "1",
-          Order = command.Order+1,
+          Order = command.Order + 1,
           Protected = !command.Protected,
-          Type = faker.PickRandomWithout<DeviceType>(command.Type),
+          Type = faker.PickRandomWithout(command.Type),
         });
     deviceRepository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>())
       .Returns(true);
@@ -111,8 +113,6 @@ public class UpdateDeviceCommandHandlerTests
     var deviceRepository = Substitute.For<IDeviceRepository>();
     deviceRepository.GetAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
         .Returns(_ => (Device?)null);
-
-    var faker = new Faker();
 
     var sut = new SutBuilder()
         .WithDeviceRepository(deviceRepository)

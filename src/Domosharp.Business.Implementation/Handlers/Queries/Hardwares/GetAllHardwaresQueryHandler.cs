@@ -1,6 +1,7 @@
 ﻿using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Queries.Hardwares;
 using Domosharp.Business.Contracts.Repositories;
+
 using MediatR;
 
 namespace Domosharp.Business.Implementation.Handlers.Queries.Hardwares;

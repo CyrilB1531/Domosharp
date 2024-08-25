@@ -3,11 +3,12 @@ using Domosharp.Api.Models;
 using Domosharp.Business.Contracts.Commands.Devices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Queries.Devices;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
 
 using NSubstitute;
-using System.Collections.Concurrent;
 
 namespace Domosharp.Api.Tests;
 

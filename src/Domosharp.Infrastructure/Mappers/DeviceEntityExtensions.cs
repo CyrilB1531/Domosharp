@@ -5,7 +5,7 @@ namespace Domosharp.Infrastructure.Mappers;
 
 internal static class DeviceEntityExtensions
 {
-  internal static Device MapDeviceToDomain(this DeviceEntity device) => new ()
+  internal static Device MapToModel(this DeviceEntity device) => new()
   {
     Id = device.Id,
     Active = device.Active != 0,

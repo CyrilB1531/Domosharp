@@ -51,7 +51,7 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
         throw new ArgumentOutOfRangeException(nameof(hardware), error.ErrorMessage);
     }
 
-    await connection.InsertAsync(hardware.MapHardwareToEntity(GetMaxId(), DateTime.UtcNow));
+    await connection.InsertAsync(hardware.MapToEntity(GetMaxId(), DateTime.UtcNow));
   }
 
   public Task<bool> DeleteAsync(int hardwareId, CancellationToken cancellationToken = default)
@@ -71,7 +71,7 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
         throw new ArgumentOutOfRangeException(nameof(hardware), error.ErrorMessage);
     }
 
-    return await connection.UpdateAsync(hardware.MapHardwareToEntity(hardware.Id, DateTime.UtcNow));
+    return await connection.UpdateAsync(hardware.MapToEntity(hardware.Id, DateTime.UtcNow));
   }
 
   public async Task<IHardware?> GetAsync(int hardwareId, CancellationToken cancellationToken = default)
@@ -86,6 +86,6 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
   public async Task<IEnumerable<IHardware>> GetListAsync(CancellationToken cancellationToken = default)
   {
     var entities = await connection.FindAsync<HardwareEntity>(statement => statement.WithAlias("Hardware"));
-    return entities.Select( HardwareEntityExtensions.MapToModel);
+    return entities.Select(HardwareEntityExtensions.MapToModel);
   }
 }

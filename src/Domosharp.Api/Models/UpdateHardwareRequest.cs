@@ -1,6 +1,4 @@
-﻿using Domosharp.Business.Contracts.Models;
-
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Domosharp.Api.Models;
 

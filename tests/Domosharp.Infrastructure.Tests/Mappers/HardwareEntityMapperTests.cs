@@ -8,8 +8,7 @@ namespace Domosharp.Infrastructure.Tests.Mappers
     public void Mapper_WithNullHardware_ReturnsNull()
     {
       // Act
-      var result = IHardwareExtensions.MapHardwareToEntity(null, 1, DateTime.Now);
-
+      var result = IHardwareExtensions.MapToEntity(null, 1, DateTime.Now);
       // Assert
       Assert.Null(result);
     }
