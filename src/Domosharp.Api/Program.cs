@@ -1,8 +1,8 @@
 ﻿using Domosharp.Api.Validators;
-using Domosharp.Business.Contracts.Commands.Hardware;
+using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
-using Domosharp.Business.Implementation.Handlers.Commands.Hardware;
+using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 using Domosharp.Infrastructure.DBExtensions;
 using Domosharp.Infrastructure.Repositories;
 using Domosharp.Infrastructure.Validators;

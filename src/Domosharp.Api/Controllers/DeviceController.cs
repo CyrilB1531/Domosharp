@@ -2,9 +2,9 @@
 
 using Domosharp.Api.Models;
 using Domosharp.Api.Validators;
-using Domosharp.Business.Contracts.Commands.Device;
+using Domosharp.Business.Contracts.Commands.Devices;
 using Domosharp.Business.Contracts.Models;
-using Domosharp.Business.Contracts.Queries.Device;
+using Domosharp.Business.Contracts.Queries.Devices;
 
 using DotNetCore.CAP.Messages;
 
