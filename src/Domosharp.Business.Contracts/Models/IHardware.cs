@@ -9,7 +9,7 @@ public interface IHardware
 
   void CopyTo(ref IHardware hardware);
 
-  public int Id { get; set; }
+  int Id { get; set; }
 
   string Name { get; set; }
 
