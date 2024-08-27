@@ -52,10 +52,12 @@ jobs:
           dotnet-coverage collect 'dotnet test --configuration Release --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"' -f xml -o 'coverage.xml'
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
       - name: Upload dotnet test results
-        uses: actions/upload-artifact@v4
+        uses: bibipkins/dotnet-test-reporter@v1.4.0
         with:
-          name: dotnet-results-${{ matrix.dotnet-version }}
-          path: TestResults-${{ matrix.dotnet-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-title: 'Unit Test Results'
+          results-path: ./TestResults-${{ matrix.dotnet-version }}/*.trx
         # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
+
 
