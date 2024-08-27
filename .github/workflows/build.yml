@@ -49,7 +49,7 @@ jobs:
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"CyrilB1531_Domosharp" /o:"cyrilb1531" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-          dotnet-coverage collect 'dotnet test' -f xml -o 'coverage.xml --configuration Release --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"'
+          dotnet-coverage collect 'dotnet test --configuration Release --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"' -f xml -o 'coverage.xml
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
       - name: Upload dotnet test results
         uses: actions/upload-artifact@v4
