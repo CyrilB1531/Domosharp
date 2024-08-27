@@ -15,8 +15,9 @@ namespace Domosharp.Api.Tests;
 public class DeviceControllerTests
 {
   [Fact]
-  public async Task ShouldGetDevices()
+  public async Task GetDevices_WithDevicesDefined_ReturnsOk()
   {
+    // Arrange
     var expected = new Device
     {
       Id = 5
@@ -28,8 +29,11 @@ public class DeviceControllerTests
         .Returns(_ => [expected]);
 
     var sut = new SutBuilder().WithMediator(mediator).Build();
+
+    // Act
     var result = await sut.GetListAsync(1, CancellationToken.None);
 
+    // Assert
     Assert.NotNull(result);
     Assert.IsType<OkObjectResult>(result.Result);
     var values = (IEnumerable<DeviceResponse>)((OkObjectResult)result.Result).Value!;
@@ -40,26 +44,28 @@ public class DeviceControllerTests
   }
 
   [Fact]
-  public async Task ShouldGetDevicesReturnsNull()
+  public async Task GetDevices_WithoutData_ReturnsNoContent()
   {
+    // Arrange
     var mediator = Substitute.For<IMediator>();
     mediator
         .Send(Arg.Any<GetAllDevicesQuery>(), Arg.Any<CancellationToken>())
         .Returns(_ => []);
 
     var sut = new SutBuilder().WithMediator(mediator).Build();
+
+    // Act
     var result = await sut.GetListAsync(1, CancellationToken.None);
 
+    // Assert
     Assert.NotNull(result);
-    Assert.IsType<OkObjectResult>(result.Result);
-    var values = (IEnumerable<DeviceResponse>)((OkObjectResult)result.Result).Value!;
-    Assert.NotNull(values);
-    Assert.Empty(values);
+    Assert.IsType<NoContentResult>(result.Result);
   }
 
   [Fact]
-  public async Task ShouldCreateDevice()
+  public async Task Create_WithGoodDevice_ReturnsOk()
   {
+    // Arrange
     var mediator = Substitute.For<IMediator>();
     mediator
         .Send(Arg.Any<GetAllDevicesQuery>(), Arg.Any<CancellationToken>())
@@ -80,14 +86,18 @@ public class DeviceControllerTests
       Protected = false,
       Type = DeviceType.LightSwitch,
     };
+
+    // Act
     await sut.AddAsync(request, CancellationToken.None);
 
+    // Assert
     await mediator.Received(1).Send(Arg.Any<CreateDeviceCommand>(), Arg.Any<CancellationToken>());
   }
 
   [Fact]
-  public async Task ShouldUpdateDevices()
+  public async Task Update_ReturnsOk()
   {
+    // Arrange
     var mediator = Substitute.For<IMediator>();
     mediator
         .Send(Arg.Any<GetAllDevicesQuery>(), Arg.Any<CancellationToken>())
@@ -106,22 +116,29 @@ public class DeviceControllerTests
       Protected = false,
       Type = DeviceType.LightSwitch,
     };
+
+    // Act
     await sut.UpdateAsync(request, 1, CancellationToken.None);
 
+    // Assert
     await mediator.Received(1).Send(Arg.Any<UpdateDeviceCommand>(), Arg.Any<CancellationToken>());
   }
 
   [Fact]
-  public async Task ShouldDeleteDevice()
+  public async Task Delete_ReturnsOk()
   {
+    // Arrange
     var mediator = Substitute.For<IMediator>();
     mediator
         .Send(Arg.Any<GetAllDevicesQuery>(), Arg.Any<CancellationToken>())
         .Returns(_ => []);
 
     var sut = new SutBuilder().WithMediator(mediator).Build();
+
+    // Act
     await sut.DeleteAsync(1, CancellationToken.None);
 
+    // Assert
     await mediator.Received(1).Send(Arg.Any<DeleteDeviceCommand>(), Arg.Any<CancellationToken>());
   }
 

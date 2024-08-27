@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Domosharp.Infrastructure.Tests")]
+[assembly: InternalsVisibleTo("Domosharp.Common.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 namespace Domosharp.Infrastructure.Entities;
 
 [Table("Device")]
@@ -64,4 +66,7 @@ internal record DeviceEntity
 
   [Column("SpecificParameters")]
   public string? SpecificParameters { get; set; }
+
+  [Column("Value")]
+  public int? Value { get; set; }
 }

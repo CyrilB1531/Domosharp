@@ -1,9 +1,9 @@
 ﻿using Bogus;
 
-using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Queries.Hardwares;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Business.Implementation.Handlers.Queries.Hardwares;
+using Domosharp.Common.Tests;
 
 using NSubstitute;
 
@@ -21,11 +21,12 @@ public class GetAllHardwaresQueryHandlerTests
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetListAsync(Arg.Any<CancellationToken>())
-        .Returns(a => [ new Hardware(){
-               Id= faker.Random.Int(1),
-               Name= faker.Random.Words(),
-               Enabled = faker.Random.Bool(),
-             Order =   faker.Random.Int(1) }
+        .Returns(a => [ HardwareHelper.GetFakeHardware(
+               faker.Random.Int(1),
+               faker.Random.Words(),
+               faker.Random.Bool(),
+               faker.Random.Int(1),
+               null, Microsoft.Extensions.Logging.LogLevel.None)
         ]);
 
     var sut = new SutBuilder()

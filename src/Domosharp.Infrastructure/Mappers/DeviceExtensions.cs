@@ -5,7 +5,7 @@ namespace Domosharp.Infrastructure.Mappers;
 
 internal static class DeviceExtensions
 {
-  internal static DeviceEntity MapToEntity(this Device device, int id, DateTime lastUpdate) => new DeviceEntity(id, device.Name, device.HardwareId, device.DeviceId, (int)device.Type)
+  internal static DeviceEntity MapToEntity(this Device device, int id, DateTime lastUpdate) => new(id, device.Name, device.HardwareId, device.DeviceId, (int)device.Type)
     {
       Active = device.Active ? 1 : 0,
       BatteryLevel = device.BatteryLevel,
@@ -15,5 +15,6 @@ internal static class DeviceExtensions
       Order = device.Order,
       Protected = device.Protected ? 1 : 0,
       SignalLevel = device.SignalLevel,
+      Value = device.Value,
     };
 }

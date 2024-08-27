@@ -36,4 +36,6 @@ public record Device
   public string? SpecificParameters { get; set; }
 
   public IHardware? Hardware { get; set; }
+
+  public int? Value {  get; set; }
 }

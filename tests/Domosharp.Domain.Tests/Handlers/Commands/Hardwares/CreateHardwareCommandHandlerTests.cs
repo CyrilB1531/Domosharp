@@ -1,5 +1,6 @@
 ﻿using Bogus;
 
+using Domosharp.Business.Contracts;
 using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
@@ -52,11 +53,13 @@ public class CreateHardwareCommandHandlerTests
   private class SutBuilder
   {
     private IHardwareRepository _hardwareRepository;
+    private readonly IHardwareFactory _hardwareFactory;
     private IMainWorker _mainWorker;
 
     public SutBuilder()
     {
       _hardwareRepository = Substitute.For<IHardwareRepository>();
+      _hardwareFactory = Substitute.For<IHardwareFactory>();
       _mainWorker = Substitute.For<IMainWorker>();
     }
 
@@ -74,7 +77,7 @@ public class CreateHardwareCommandHandlerTests
 
     public CreateHardwareCommandHandler Build()
     {
-      return new CreateHardwareCommandHandler(_hardwareRepository, _mainWorker);
+      return new CreateHardwareCommandHandler(_hardwareRepository, _hardwareFactory, _mainWorker);
     }
   }
 }

@@ -4,8 +4,10 @@ using Dapper.FastCrud;
 
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
+using Domosharp.Common.Tests;
 using Domosharp.Infrastructure.DBExtensions;
 using Domosharp.Infrastructure.Entities;
+using Domosharp.Infrastructure.Factories;
 using Domosharp.Infrastructure.Mappers;
 using Domosharp.Infrastructure.Repositories;
 using Domosharp.Infrastructure.Tests.Fakes;
@@ -14,6 +16,8 @@ using Domosharp.Infrastructure.Validators;
 using FluentValidation;
 
 using Microsoft.Extensions.Logging;
+
+using NSubstitute;
 
 using System.Data;
 
@@ -91,8 +95,13 @@ public class HardwareRepositoryTests
 
     var expected1 = await CreateHardwareInDatabaseAsync(connection);
 
+    var hardwareFactory = Substitute.For<IHardwareInfrastructureFactory>();
+    hardwareFactory.CreateAsync(Arg.Any<HardwareEntity>(), Arg.Any<CancellationToken>())
+      .Returns(a => HardwareHelper.GetFakeHardware(a.ArgAt<HardwareEntity>(0)));
+
     var sut = new SutBuilder()
     .WithIDBConnection(connection)
+    .WithHardwareInfrastructureFactory(hardwareFactory)
     .Build();
 
     // Act
@@ -332,21 +341,29 @@ public class HardwareRepositoryTests
   }
 
   [Fact]
-  public async Task ShouldGetHardwaresFromDatabase()
+  public async Task GetHardwaresList_ReturnsDataFromDatabase()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
 
     HardwareRepository.CreateTable(connection);
 
     var expected1 = await CreateHardwareInDatabaseAsync(connection);
     var expected2 = await CreateHardwareInDatabaseAsync(connection);
+    var hardwareFactory = Substitute.For<IHardwareInfrastructureFactory>();
+    hardwareFactory.CreateAsync(Arg.Any<HardwareEntity>(), Arg.Any<CancellationToken>())
+      .Returns(a => HardwareHelper.GetFakeHardware(a.ArgAt<HardwareEntity>(0)));
+
 
     var sut = new SutBuilder()
         .WithIDBConnection(connection)
+        .WithHardwareInfrastructureFactory(hardwareFactory)
         .Build();
 
+    // Act
     var result = await sut.GetListAsync(CancellationToken.None);
 
+    // Assert
     Assert.Equal(2, result.Count());
     Assert.Equal(1, result.Count(a => a is not null && a.Id == expected1.Id));
     Assert.Equal(1, result.Count(a => a is not null && a.Id == expected2.Id));
@@ -358,27 +375,32 @@ public class HardwareRepositoryTests
   }
 
   [Fact]
-  public async Task ShouldGetHardwaresFromDatabaseReturnsEmptyList()
+  public async Task GetList_WithoutDataInDatabase_ReturnsEmptyList()
   {
+    // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
 
     HardwareRepository.CreateTable(connection);
 
     var sut = new SutBuilder().WithIDBConnection(connection).Build();
 
+    // Act
     var result = await sut.GetListAsync(CancellationToken.None);
 
+    // Assert
     Assert.Empty(result);
   }
 
   public class SutBuilder
   {
     private IDbConnection _connection;
+    private IHardwareInfrastructureFactory _hardwareInfrastructureFactory;
     private readonly IValidator<IHardware> _validator;
 
     public SutBuilder()
     {
       _connection = FakeDBConnectionFactory.GetConnection();
+      _hardwareInfrastructureFactory = Substitute.For<IHardwareInfrastructureFactory>();
       _validator = new HardwareValidator();
     }
 
@@ -388,9 +410,15 @@ public class HardwareRepositoryTests
       return this;
     }
 
+    public SutBuilder WithHardwareInfrastructureFactory(IHardwareInfrastructureFactory hardwareInfrastructureFactory)
+    {
+      _hardwareInfrastructureFactory = hardwareInfrastructureFactory;
+      return this;
+    }
+
     public IHardwareRepository Build()
     {
-      return new HardwareRepository(_connection, _validator);
+      return new HardwareRepository(_connection, _hardwareInfrastructureFactory, _validator);
     }
   }
 }

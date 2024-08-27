@@ -42,12 +42,11 @@ public class CreateDeviceCommandHandlerTests
     hardwareRepository.GetAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
         .Returns(a =>
         {
-          return new Hardware()
-          {
-            Id = a.ArgAt<int>(0),
-            Name = faker.Random.Word(),
-            Enabled = faker.Random.Bool()
-          };
+          var dummy = Substitute.For<IHardware>();
+          dummy.Id.Returns(a.ArgAt<int>(0));
+          dummy.Name.Returns(faker.Random.Words());
+          dummy.Enabled.Returns(faker.Random.Bool());
+          return dummy;
         });
 
     var sut = new SutBuilder()

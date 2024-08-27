@@ -1,10 +1,14 @@
 ﻿using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
+using Domosharp.Infrastructure.HostedServices;
 
 using DotNetCore.CAP;
 
-namespace Domosharp.Domain.Tests.HostedServices.Data;
+using System.Diagnostics.CodeAnalysis;
 
+namespace Domosharp.Common.Tests.HostedServices;
+
+[ExcludeFromCodeCoverage]
 public class HardwareBaseServiceSutTest(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware)
 {
   public override Task ConnectAsync(CancellationToken cancellationToken)

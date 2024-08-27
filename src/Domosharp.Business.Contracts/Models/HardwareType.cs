@@ -4,6 +4,7 @@ public enum HardwareType
 {
   System = 0,
   Dummy,
-  Domosharp,
+  MQTT,
   MQTTTasmota,
+  END
 }

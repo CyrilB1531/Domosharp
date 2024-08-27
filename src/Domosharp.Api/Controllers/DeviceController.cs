@@ -6,6 +6,7 @@ using Domosharp.Business.Contracts.Queries.Devices;
 
 using MediatR;
 
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Domosharp.Api.Controllers;
@@ -35,10 +36,15 @@ public class DeviceController(IMediator mediator) : ControllerBase
   }
 
   [HttpGet("hardware/{id}")]
+  [ProducesDefaultResponseType]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
   public async Task<ActionResult<IEnumerable<DeviceResponse>>> GetListAsync(int id, CancellationToken cancellationToken)
   {
     var query = new GetAllDevicesQuery() { HardwareId = id };
-    var result = await mediator.Send(query, cancellationToken);
+    var result = (await mediator.Send(query, cancellationToken)).ToList();
+    if(result.Count == 0)
+      return NoContent();
     return Ok(result.Select(a => new DeviceResponse(a)).ToList());
   }
 

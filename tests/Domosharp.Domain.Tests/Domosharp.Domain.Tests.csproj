@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -27,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Domosharp.Business.Contracts\Domosharp.Business.Contracts.csproj" />
     <ProjectReference Include="..\..\src\Domosharp.Business.Implementation\Domosharp.Business.Implementation.csproj" />
+    <ProjectReference Include="..\Domosharp.Common.Tests\Domosharp.Common.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

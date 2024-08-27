@@ -1,16 +1,20 @@
-﻿using Domosharp.Business.Contracts.Commands.Hardwares;
+﻿using Domosharp.Business.Contracts;
+using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.HostedServices;
+using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 
 using MediatR;
 
 namespace Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
-public class CreateHardwareCommandHandler(IHardwareRepository hardwareRepository, IMainWorker mainWorker) : IRequestHandler<CreateHardwareCommand>
+public class CreateHardwareCommandHandler(IHardwareRepository hardwareRepository, 
+  IHardwareFactory hardwareFactory,
+  IMainWorker mainWorker) : IRequestHandler<CreateHardwareCommand, IHardware?>
 {
-  public async Task Handle(CreateHardwareCommand request, CancellationToken cancellationToken)
+  public async Task<IHardware?> Handle(CreateHardwareCommand request, CancellationToken cancellationToken)
   {
-    var hardware = new Contracts.Models.Hardware()
+    var hardware = await hardwareFactory.CreateAsync(new CreateHardwareParams()
     {
       Id = 0,
       Name = request.Name,
@@ -19,8 +23,11 @@ public class CreateHardwareCommandHandler(IHardwareRepository hardwareRepository
       LogLevel = request.LogLevel,
       Order = request.Order,
       Configuration = request.Configuration
-    };
+    }, cancellationToken);
+    if (hardware is null)
+      return null;
     await hardwareRepository.CreateAsync(hardware, cancellationToken);
     mainWorker.AddHardware(hardware);
+    return hardware;
   }
 }

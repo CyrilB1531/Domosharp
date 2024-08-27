@@ -5,6 +5,7 @@ using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
+using Domosharp.Common.Tests;
 
 using Microsoft.Extensions.Logging;
 
@@ -30,13 +31,7 @@ public class UpdateHardwareCommandHandlerTests
       Configuration = faker.Random.Words()
     };
 
-    var hardware = new Hardware()
-    {
-      Id = command.Id,
-      Name = faker.Random.String2(10),
-      Enabled = !command.Enabled,
-      Order = command.Order + 1
-    };
+    var hardware = HardwareHelper.GetFakeHardware(command.Id, faker.Random.String2(10), !command.Enabled, command.Order+1, null, LogLevel.None);
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetAsync(command.Id, CancellationToken.None)
@@ -75,15 +70,7 @@ public class UpdateHardwareCommandHandlerTests
       Configuration = faker.Random.Words()
     };
 
-    var hardware = new Hardware()
-    {
-      Id = command.Id,
-      Name = command.Name,
-      Enabled = command.Enabled,
-      Order = command.Order,
-      Configuration = command.Configuration,
-      LogLevel = command.LogLevel
-    };
+    var hardware = HardwareHelper.GetFakeHardware(command.Id, command.Name, command.Enabled, command.Order, command.Configuration, command.LogLevel);
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetAsync(command.Id, CancellationToken.None)
@@ -147,15 +134,17 @@ public class UpdateHardwareCommandHandlerTests
       Order = faker.Random.Int(1),
       Configuration = faker.Random.Words()
     };
+    var returnedHardware = HardwareHelper.GetFakeHardware(
+        command.Id,
+        command.Name,
+        command.Enabled,
+        command.Order,
+        null,
+        LogLevel.None);
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
-    hardwareRepository.GetAsync(command.Id, CancellationToken.None).Returns((IHardware?)new Hardware()
-    {
-      Id = command.Id,
-      Name = command.Name,
-      Enabled = command.Enabled,
-      Order = command.Order
-    });
+    hardwareRepository.GetAsync(command.Id, CancellationToken.None)
+      .Returns(returnedHardware);
     hardwareRepository.UpdateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>()).Returns(false);
     var mainWorker = Substitute.For<IMainWorker>();
 
@@ -190,14 +179,17 @@ public class UpdateHardwareCommandHandlerTests
       Configuration = faker.Random.Words()
     };
 
+    var returnedHardware = HardwareHelper.GetFakeHardware(
+          command.Id,
+          command.Name,
+          command.Enabled,
+          command.Order,
+          null,
+          LogLevel.None);
     var hardwareRepository = Substitute.For<IHardwareRepository>();
-    hardwareRepository.GetAsync(command.Id, CancellationToken.None).Returns((IHardware?)new Hardware()
-    {
-      Id = command.Id,
-      Name = command.Name,
-      Enabled = command.Enabled,
-      Order = command.Order
-    });
+    hardwareRepository.GetAsync(command.Id, CancellationToken.None)
+      .Returns(returnedHardware);
+    
     var mainWorker = Substitute.For<IMainWorker>();
 
     var sut = new SutBuilder()

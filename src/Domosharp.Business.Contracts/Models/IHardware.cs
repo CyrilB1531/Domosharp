@@ -21,7 +21,7 @@ public interface IHardware
 
   string? Configuration { get; set; }
 
-  DateTime LastUpdate { get; }
+  DateTime LastUpdate { get; set; }
 
   int Order { get; set; }
 }
