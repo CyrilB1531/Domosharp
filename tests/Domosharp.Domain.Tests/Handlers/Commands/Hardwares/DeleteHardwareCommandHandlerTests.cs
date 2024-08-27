@@ -5,6 +5,9 @@ using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
+using Domosharp.Common.Tests;
+
+using Microsoft.Extensions.Logging;
 
 using NSubstitute;
 
@@ -25,13 +28,12 @@ public class DeleteHardwareCommandHandlerTests
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetAsync(Arg.Is(command.Id), Arg.Any<CancellationToken>())
-        .Returns(a => new Hardware()
-        {
-          Id = a.Arg<int>(),
-          Name = faker.Random.Words(),
-          Enabled = faker.Random.Bool(),
-          Order = faker.Random.Int(1)
-        });
+        .Returns(a => HardwareHelper.GetFakeHardware(a.ArgAt<int>(0), 
+          faker.Random.Words(),
+          faker.Random.Bool(),
+          faker.Random.Int(1),
+          null,
+          LogLevel.None));
     hardwareRepository.DeleteAsync(command.Id, CancellationToken.None).Returns(true);
     var mainWorker = Substitute.For<IMainWorker>();
 
@@ -92,13 +94,13 @@ public class DeleteHardwareCommandHandlerTests
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
     hardwareRepository.GetAsync(Arg.Is(command.Id), Arg.Any<CancellationToken>())
-        .Returns(a => new Hardware()
-        {
-          Id = a.Arg<int>(),
-          Name = faker.Random.Words(),
-          Enabled = faker.Random.Bool(),
-          Order = faker.Random.Int(1)
-        });
+        .Returns(a => HardwareHelper.GetFakeHardware(
+          a.Arg<int>(),
+          faker.Random.Words(),
+          faker.Random.Bool(),
+          faker.Random.Int(1),
+          null,
+          LogLevel.None));
     hardwareRepository.DeleteAsync(command.Id, CancellationToken.None).Returns(false);
     var mainWorker = Substitute.For<IMainWorker>();
 

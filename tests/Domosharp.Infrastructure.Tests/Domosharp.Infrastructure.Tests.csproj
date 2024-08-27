@@ -30,7 +30,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\Domosharp.Business.Implementation\Domosharp.Business.Implementation.csproj" />
 		<ProjectReference Include="..\..\src\Domosharp.Infrastructure\Domosharp.Infrastructure.csproj" />
+		<ProjectReference Include="..\Domosharp.Common.Tests\Domosharp.Common.Tests.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

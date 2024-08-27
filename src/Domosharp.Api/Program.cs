@@ -21,6 +21,8 @@ using System.Data.SQLite;
 using System.Text.Json.Serialization;
 using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Implementation.HostedServices;
+using Domosharp.Business.Contracts.Configurations;
+using Domosharp.Business.Implementation.Configurations;
 
 namespace Domosharp.Api;
 
@@ -33,14 +35,19 @@ public partial class Program
     var builder = WebApplication.CreateBuilder(args);
 
     var configuration = new ConfigurationBuilder()
-        .AddJsonFile("appsettings.json", false)
-        .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
+        .AddJsonFile("appsettings.json", false,true)
+        .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true)
         .AddEnvironmentVariables()
         .Build();
 
     builder.Host.UseNLog();
 
     var services = builder.Services;
+
+    DomosharpConfiguration.CheckCryptographicConfiguration(configuration);
+    var domosharpConfiguration = new DomosharpConfiguration();
+    configuration.Bind(domosharpConfiguration);
+    services.AddTransient<IDomosharpConfiguration>(_ => domosharpConfiguration);
 
     services.AddControllers()
              .AddJsonOptions(options =>
@@ -104,10 +111,10 @@ public partial class Program
 
     var listeningAddresses = new List<string>()
     {
-        GetWebUri(configuration)
+        GetWebUri(domosharpConfiguration)
     };
 
-    var sslUri = GetSSLUri(configuration);
+    var sslUri = GetSSLUri(domosharpConfiguration);
     if (sslUri is not null)
       listeningAddresses.Add(sslUri);
 
@@ -135,22 +142,21 @@ public partial class Program
     await app.RunAsync();
   }
 
-  private static string GetWebUri(IConfiguration configuration)
+  private static string GetWebUri(IDomosharpConfiguration configuration)
   {
-    var webBind = configuration.GetValue<string?>("webBind");
+    var webBind = configuration.Web?.Address;
     if (string.IsNullOrWhiteSpace(webBind))
       webBind = "*";
-    var webPort = configuration.GetValue<int?>("webPort") ?? 8080;
+    var webPort = configuration.Web?.Port ?? 8080;
     return $"http://{webBind}:{webPort}";
   }
 
-  private static string? GetSSLUri(IConfiguration configuration)
+  private static string? GetSSLUri(IDomosharpConfiguration configuration)
   {
-    var sslWebBind = configuration.GetValue<string?>("sslWebBind");
+    var sslWebBind = configuration.Ssl?.Address;
     if (string.IsNullOrEmpty(sslWebBind))
       return null;
-    var sslWebPort = configuration.GetValue<int?>("sslWebPort") ?? 8443;
+    var sslWebPort = configuration.Ssl?.Port ?? 8443;
     return $"https://{sslWebBind}:{sslWebPort}";
-
   }
 }

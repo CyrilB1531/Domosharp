@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using Message = Domosharp.Business.Contracts.Models.Message;
 using MessageType = Domosharp.Business.Contracts.Models.MessageType;
 
-[assembly:InternalsVisibleTo("Domosharp.Domain.Tests")]
+[assembly: InternalsVisibleTo("Domosharp.Domain.Tests")]
 namespace Domosharp.Business.Implementation.HostedServices;
 
 public class HardwareWorker(IHardwareServiceFactory hardwareServiceFactory) : IHardwareWorker

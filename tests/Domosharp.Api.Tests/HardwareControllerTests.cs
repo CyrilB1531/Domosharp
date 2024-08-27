@@ -5,6 +5,7 @@ using Domosharp.Api.Models;
 using Domosharp.Business.Contracts.Commands.Hardwares;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Queries.Hardwares;
+using Domosharp.Common.Tests;
 
 using MediatR;
 
@@ -21,12 +22,10 @@ public class HardwareControllerTests
   public async Task GetAllHardwares_ReturnsOneItem()
   {
     // Arrange
+    var faker = new Faker();
     var expected = new List<IHardware>{
-            new Faker<Hardware>().Rules((faker, device)=>{
-              device.Name =faker.Random.String2(10);
-              device.Id = faker.Random.Int(1);
-              device.Configuration = faker.Random.String2(10);
-            }).Generate()
+      HardwareHelper.GetFakeHardware(faker.Random.Int(1), 
+        faker.Random.String2(10),true, 1, faker.Random.String2(10), LogLevel.None)
         };
 
     var mediator = Substitute.For<IMediator>();

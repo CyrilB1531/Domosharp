@@ -20,5 +20,6 @@ internal static class DeviceEntityExtensions
     Type = (DeviceType)device.DeviceType,
     SpecificParameters = device.SpecificParameters,
     Order = device.Order,
+    Value = device.Value,
   };
 }

@@ -43,13 +43,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Api", "src\Domosh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Business.Implementation", "src\Domosharp.Business.Implementation\Domosharp.Business.Implementation.csproj", "{40C9F6F8-B9FB-44B5-BAE1-2381384F6FDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domosharp.Domain.Tests", "Tests\Domosharp.Domain.Tests\Domosharp.Domain.Tests.csproj", "{A3CA93B9-E5A0-4CB2-9036-1DF34D5226E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Domain.Tests", "Tests\Domosharp.Domain.Tests\Domosharp.Domain.Tests.csproj", "{A3CA93B9-E5A0-4CB2-9036-1DF34D5226E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domosharp.Api.Tests", "tests\Domosharp.Api.Tests\Domosharp.Api.Tests.csproj", "{9114BE42-CE50-4BEA-AB59-B32D99591D4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Api.Tests", "tests\Domosharp.Api.Tests\Domosharp.Api.Tests.csproj", "{9114BE42-CE50-4BEA-AB59-B32D99591D4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domosharp.Integration.Tests", "tests\Domosharp.Integration.Tests\Domosharp.Integration.Tests.csproj", "{512BBABD-2DD2-49DB-B8DD-F38BEDEF06E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domosharp.Integration.Tests", "tests\Domosharp.Integration.Tests\Domosharp.Integration.Tests.csproj", "{512BBABD-2DD2-49DB-B8DD-F38BEDEF06E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03-Github", "03-Github", "{FC06C596-F9D5-4D30-A650-0FF37337B797}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Common", "00-Common", "{9A3A8DD0-F9F0-4B2D-8387-DEFA890BB480}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domosharp.Common.Tests", "tests\Domosharp.Common.Tests\Domosharp.Common.Tests.csproj", "{683088B1-EC5E-49D8-9A7D-0612D2C85EAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +93,10 @@ Global
 		{512BBABD-2DD2-49DB-B8DD-F38BEDEF06E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{512BBABD-2DD2-49DB-B8DD-F38BEDEF06E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{512BBABD-2DD2-49DB-B8DD-F38BEDEF06E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{683088B1-EC5E-49D8-9A7D-0612D2C85EAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{683088B1-EC5E-49D8-9A7D-0612D2C85EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{683088B1-EC5E-49D8-9A7D-0612D2C85EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{683088B1-EC5E-49D8-9A7D-0612D2C85EAB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,6 +117,8 @@ Global
 		{9114BE42-CE50-4BEA-AB59-B32D99591D4C} = {8E02C3E0-BB81-4E59-86C0-FD1D14753B8C}
 		{512BBABD-2DD2-49DB-B8DD-F38BEDEF06E3} = {7E23958C-1630-4E0E-9C79-D07721AAD6E8}
 		{FC06C596-F9D5-4D30-A650-0FF37337B797} = {D7F72983-C3F3-4B40-A9FA-642F8C7D44AA}
+		{9A3A8DD0-F9F0-4B2D-8387-DEFA890BB480} = {A283508D-D7FE-4149-B603-75BE016DD488}
+		{683088B1-EC5E-49D8-9A7D-0612D2C85EAB} = {9A3A8DD0-F9F0-4B2D-8387-DEFA890BB480}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {330E4D9C-3CA6-429C-B448-69BB15B84610}

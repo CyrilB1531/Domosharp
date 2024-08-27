@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Domosharp.Api\Domosharp.Api.csproj" />
+    <ProjectReference Include="..\Domosharp.Common.Tests\Domosharp.Common.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@ using NSubstitute;
 
 using System.Collections;
 
-namespace Domosharp.Domain.Tests.HostedServices.Data;
+namespace Domosharp.Infrastructure.Tests.HostedServices.Data;
 
 public class ProcessLoopData : IEnumerable<object[]>
 {

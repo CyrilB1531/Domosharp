@@ -1,14 +1,9 @@
 ﻿using Bogus;
 
 using Domosharp.Business.Contracts.Models;
+using Domosharp.Common.Tests;
 
 using Microsoft.Extensions.Logging;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domosharp.Domain.Tests;
 
@@ -17,18 +12,17 @@ public class HardwareTests
   [Fact]
   public void CopyTo_ReturnsSameObject()
   {
-    var hardware = new Faker<Hardware>().Rules((faker, hardware)=>
-    {
-      hardware.LogLevel = faker.PickRandom<LogLevel>();
-      hardware.Configuration = faker.Random.Words();
-      hardware.Enabled = true;
-      hardware.Id = faker.Random.Int();
-      hardware.Type = faker.PickRandom<HardwareType>();
-      hardware.Name = faker.Random.Words();
-      hardware.Order = faker.Random.Int();
-    }).Generate();
+    var faker = new Faker();
+    var hardware = HardwareHelper.GetFakeHardware(
+      faker.Random.Int(),
+      faker.Random.Words(),
+      true,
+      faker.Random.Int(),
+      faker.Random.Words(),
+      faker.PickRandom<LogLevel>(),
+      faker.PickRandom<HardwareType>());
 
-    var result = (IHardware)new Hardware();
+    var result = HardwareHelper.GetFakeHardware();
     hardware.CopyTo(ref result);
 
     Assert.Equal(result.LogLevel, hardware.LogLevel);

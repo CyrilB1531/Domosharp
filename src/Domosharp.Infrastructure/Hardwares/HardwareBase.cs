@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Domosharp.Business.Contracts.Models;
+using Microsoft.Extensions.Logging;
 
-namespace Domosharp.Business.Contracts.Models;
+namespace Domosharp.Infrastructure.Hardwares;
 
-public abstract class HardwareBase : IHardware
+internal abstract record HardwareBase : IHardware
 {
   public EventHandler<DeviceEventArgs>? CreateDevice { get; set; }
 

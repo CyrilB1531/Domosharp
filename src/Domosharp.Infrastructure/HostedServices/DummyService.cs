@@ -5,7 +5,7 @@ using DotNetCore.CAP;
 
 namespace Domosharp.Infrastructure.HostedServices;
 
-public class DummyService(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware)
+internal class DummyService(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware)
 {
 
   public override Task ConnectAsync(CancellationToken cancellationToken)

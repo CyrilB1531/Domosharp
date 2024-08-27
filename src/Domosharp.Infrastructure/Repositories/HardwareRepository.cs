@@ -3,6 +3,7 @@
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
+using Domosharp.Infrastructure.Factories;
 using Domosharp.Infrastructure.Mappers;
 
 using FluentValidation;
@@ -11,7 +12,9 @@ using System.Data;
 
 namespace Domosharp.Infrastructure.Repositories;
 
-public class HardwareRepository(IDbConnection connection, IValidator<IHardware> validator) : IHardwareRepository
+public class HardwareRepository(IDbConnection connection,
+  IHardwareInfrastructureFactory hardwareFactory,
+  IValidator<IHardware> validator) : IHardwareRepository
 {
   public static void CreateTable(IDbConnection connection)
   {
@@ -80,12 +83,19 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
     if (entity is null)
       return null;
 
-    return entity.MapToModel();
+    return await hardwareFactory.CreateAsync(entity, cancellationToken);
   }
 
   public async Task<IEnumerable<IHardware>> GetListAsync(CancellationToken cancellationToken = default)
   {
     var entities = await connection.FindAsync<HardwareEntity>(statement => statement.WithAlias("Hardware"));
-    return entities.Select(HardwareEntityExtensions.MapToModel);
+    var result = new List<IHardware>();
+    foreach (var entity in entities)
+    {
+      var hardwareEntity = await hardwareFactory.CreateAsync(entity, cancellationToken);
+      if (hardwareEntity is not null)
+        result.Add(hardwareEntity);
+    }
+    return result;
   }
 }

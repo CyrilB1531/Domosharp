@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Domosharp.Business.Contracts.Commands.Hardwares;
 
-public record CreateHardwareCommand : IRequest
+public record CreateHardwareCommand : IRequest<IHardware?>
 {
   public string Name { get; init; } = string.Empty;
 

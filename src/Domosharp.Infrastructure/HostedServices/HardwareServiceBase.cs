@@ -1,13 +1,12 @@
 ﻿using Domosharp.Business.Contracts.HostedServices;
+using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 
 using DotNetCore.CAP;
 
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Domosharp.Domain.Tests")]
-namespace Domosharp.Business.Contracts.Models;
+namespace Domosharp.Infrastructure.HostedServices;
 
 public abstract class HardwareServiceBase : IHardwareService
 {
