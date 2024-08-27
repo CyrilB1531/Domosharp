@@ -57,8 +57,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-title: 'Unit Test Results'
           results-path: ./**/*.trx
-          coverage-path: ./**/coverage.xml
-          coverage-threshold: 80
         # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
 
