@@ -69,7 +69,7 @@ public class MqttRepositoryTests
       Port = entity.Port,
       Password = RetreivePassword( entity.Password, key, iv),
       UserName = entity.Username,
-      UseTLS = true,
+      UseTLS = entity.UseTLS!=0,
       SubscriptionsIn = [faker.Random.Word()],
       SubscriptionsOut = [faker.Random.Word()]
     };
