@@ -19,6 +19,7 @@ public class HardwareServiceFactory(
   {
     return hardware.Type switch
     {
+      HardwareType.MQTTTasmota => new MqttTasmotaService(capPublisher, deviceRepository, clientIn, clientOut, (MqttTasmota)hardware),
       HardwareType.MQTT => new MqttService(capPublisher, deviceRepository, clientIn, clientOut, (IMqttHardware)hardware),
       HardwareType.Dummy => new DummyService(capPublisher, deviceRepository, hardware),
       _ => throw new NotImplementedException(),

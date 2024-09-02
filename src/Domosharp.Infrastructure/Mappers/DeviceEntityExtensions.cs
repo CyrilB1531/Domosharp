@@ -21,5 +21,6 @@ internal static class DeviceEntityExtensions
     SpecificParameters = device.SpecificParameters,
     Order = device.Order,
     Value = device.Value,
+    Index = device.Index
   };
 }

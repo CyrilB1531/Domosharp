@@ -438,6 +438,8 @@ public class DeviceRepositoryTests
     Assert.Equal(expected.SignalLevel, device.SignalLevel);
     Assert.Equal(expected.BatteryLevel, device.BatteryLevel);
     Assert.Equal(expected.SpecificParameters, device.SpecificParameters);
+    Assert.Equal(expected.Value, device.Value);
+    Assert.Equal(expected.Index, device.Index);
     if (checkDeviceDate)
       Assert.Equal(expected.LastUpdate, device.LastUpdate);
     else
@@ -490,6 +492,8 @@ public class DeviceRepositoryTests
       Order = faker.Random.Int(1),
       Protected = faker.Random.Bool(),
       Type = faker.PickRandom<DeviceType>(),
+      Index = faker.Random.Int(1, 500),
+      Value = faker.Random.Int(0, 100)
     };
   }
 }

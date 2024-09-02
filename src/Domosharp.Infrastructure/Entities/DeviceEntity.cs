@@ -68,5 +68,8 @@ internal record DeviceEntity
   public string? SpecificParameters { get; set; }
 
   [Column("Value")]
-  public int? Value { get; set; }
+  public decimal? Value { get; set; }
+
+  [Column("DeviceIndex")]
+  public int? Index { get; set; }
 }

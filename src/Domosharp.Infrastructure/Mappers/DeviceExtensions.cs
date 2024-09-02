@@ -16,5 +16,6 @@ internal static class DeviceExtensions
       Protected = device.Protected ? 1 : 0,
       SignalLevel = device.SignalLevel,
       Value = device.Value,
+      Index = device.Index
     };
 }

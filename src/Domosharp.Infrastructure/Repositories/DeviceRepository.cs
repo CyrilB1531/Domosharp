@@ -30,7 +30,8 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
 	[Order] INTEGER BIGINT(10)  NOT NULL, 
 	[SpecificParameters] TEXT NULL, 
 	[Protected] INTEGER  NOT NULL,
-  [Value] INTEGER NULL,
+  [Value] NUMBER NULL,
+  [DeviceIndex] INTEGER NULL,
 	CONSTRAINT Hardware_PK PRIMARY KEY (Id),
 	CONSTRAINT Device_Hardware_FK FOREIGN KEY (HardwareId) REFERENCES Hardware(Id));";
     cmd.ExecuteNonQuery();

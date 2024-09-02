@@ -37,5 +37,7 @@ public record Device
 
   public IHardware? Hardware { get; set; }
 
-  public int? Value {  get; set; }
+  public decimal? Value {  get; set; }
+
+  public int? Index { get; set; }
 }

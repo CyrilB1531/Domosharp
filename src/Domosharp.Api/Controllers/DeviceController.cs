@@ -6,7 +6,6 @@ using Domosharp.Business.Contracts.Queries.Devices;
 
 using MediatR;
 
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Domosharp.Api.Controllers;
