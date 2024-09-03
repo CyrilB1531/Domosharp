@@ -43,7 +43,7 @@ public class MqttTasmotaServiceTests
       return device;
     });
     var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
-    var sut = await new SutBuilder().WithDeviceRepository(deviceRepository).WithClientIn(clientIn).BuildAsync(CancellationToken.None);
+    await new SutBuilder().WithDeviceRepository(deviceRepository).WithClientIn(clientIn).BuildAsync(CancellationToken.None);
 
     // Act
     await CreateMqttTasmotaDiscoveryMessage(internalClientIn, payload);
@@ -67,10 +67,10 @@ public class MqttTasmotaServiceTests
     var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    List<Device> getListResult = new List<Device>() { new TasmotaDevice(hardware, oldPayload) { Active = true } };
+    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true }];
     if (deviceCount == 2)
     {
-      getListResult = new List<Device>() {
+      getListResult = [
         new TasmotaDevice(hardware, oldPayload, 1)
         {
           Active= true,
@@ -79,7 +79,7 @@ public class MqttTasmotaServiceTests
         {
           Active= true,
         }
-      };
+      ];
     }
 
     deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(getListResult);
@@ -90,8 +90,7 @@ public class MqttTasmotaServiceTests
       return true;
     });
     var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
-    var sut = await new SutBuilder().WithDeviceRepository(deviceRepository).WithClientIn(clientIn).BuildAsync(CancellationToken.None);
-
+    await new SutBuilder().WithDeviceRepository(deviceRepository).WithClientIn(clientIn).BuildAsync(CancellationToken.None);
 
     // Act
     await CreateMqttTasmotaDiscoveryMessage(internalClientIn, payload);
@@ -115,10 +114,10 @@ public class MqttTasmotaServiceTests
     var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    List<Device> getListResult = new List<Device>() { new TasmotaDevice(hardware, oldPayload) { Active = false } };
+    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = false }];
     if (deviceCount == 2)
     {
-      getListResult = new List<Device>() {
+      getListResult = [
         new TasmotaDevice(hardware, oldPayload, 1)
         {
           Active= false,
@@ -127,12 +126,12 @@ public class MqttTasmotaServiceTests
         {
           Active  = false,
         }
-      };
+      ];
     }
 
     deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(getListResult);
     var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
-    var sut = await new SutBuilder().WithDeviceRepository(deviceRepository).WithClientIn(clientIn).BuildAsync(CancellationToken.None);
+    await new SutBuilder().WithDeviceRepository(deviceRepository).WithClientIn(clientIn).BuildAsync(CancellationToken.None);
 
 
     // Act
@@ -153,7 +152,7 @@ public class MqttTasmotaServiceTests
     var internalClientIn = new MqttClientTest();
     var deviceRepository = Substitute.For<IDeviceRepository>();
     var hardware = Substitute.For<IMqttHardware>();
-    List<Device> getListResult = new List<Device>() { new TasmotaDevice(hardware, oldPayload) { Active = true } };
+    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true }];
     deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(getListResult);
     deviceRepository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a =>
     {
@@ -162,7 +161,7 @@ public class MqttTasmotaServiceTests
       return true;
     });
     var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
-    var sut = await new SutBuilder()
+    await new SutBuilder()
       .WithDeviceRepository(deviceRepository)
       .WithClientIn(clientIn).BuildAsync(CancellationToken.None);
 
@@ -202,14 +201,14 @@ public class MqttTasmotaServiceTests
     deviceRepository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a =>
     {
       var device = a.ArgAt<Device>(0);
-      if (device.Name.EndsWith("1"))
+      if (device.Name.EndsWith('1'))
         Assert.Equal(expectedValue1, device.Value);
       else
         Assert.Equal(expectedValue2, device.Value);
       return true;
     });
     var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
-    var sut = await new SutBuilder()
+    await new SutBuilder()
       .WithDeviceRepository(deviceRepository)
       .WithClientIn(clientIn).BuildAsync(CancellationToken.None);
 
@@ -236,7 +235,7 @@ public class MqttTasmotaServiceTests
     var internalClientIn = new MqttClientTest();
     var deviceRepository = Substitute.For<IDeviceRepository>();
     var hardware = Substitute.For<IMqttHardware>();
-    List<Device> getListResult = new List<Device>() { new TasmotaDevice(hardware, oldPayload) { Active = true, Value = 50 } };
+    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true, Value = 50 }];
     deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(getListResult);
     deviceRepository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a =>
     {
@@ -248,14 +247,14 @@ public class MqttTasmotaServiceTests
       return true;
     });
     var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
-    var sut = await new SutBuilder()
+    await new SutBuilder()
       .WithDeviceRepository(deviceRepository)
       .WithClientIn(clientIn).BuildAsync(CancellationToken.None);
 
     var payload = MqttPayload.GetSensor(position, target);
 
     // Act
-    await CreateMqttTasmotaMessage(internalClientIn, "tele/" + oldPayload.Topic + "/SENSOR", JsonConvert.SerializeObject(payload));
+    await CreateMqttTasmotaMessage(internalClientIn, "tele/" + oldPayload.Topic + "/SENSOR", payload);
 
     // Assert
     if (target == position)
@@ -283,13 +282,13 @@ public class MqttTasmotaServiceTests
 
   private class SutBuilder
   {
-    private Faker _faker = new Faker();
+    private readonly Faker _faker = new();
     private readonly ICapPublisher _capPublisher = Substitute.For<ICapPublisher>();
     private IDeviceRepository _deviceRepository = Substitute.For<IDeviceRepository>();
     private IManagedMqttClient _clientIn = Substitute.For<IManagedMqttClient>();
-    private IManagedMqttClient _clientOut = Substitute.For<IManagedMqttClient>();
-    private MqttConfiguration _mqttConfiguration;
-    private IMqttHardware _hardware;
+    private readonly IManagedMqttClient _clientOut = Substitute.For<IManagedMqttClient>();
+    private readonly MqttConfiguration _mqttConfiguration;
+    private readonly IMqttHardware _hardware;
 
     public SutBuilder()
     {
@@ -314,12 +313,6 @@ public class MqttTasmotaServiceTests
     public SutBuilder WithClientIn(IManagedMqttClient clientIn)
     {
       _clientIn = clientIn;
-      return this;
-    }
-
-    public SutBuilder WithHardware(IMqttHardware hardware)
-    {
-      _hardware = hardware;
       return this;
     }
 

@@ -18,8 +18,7 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     const int OffState = 0;
     const int OnState = 1;
     const int ToggleState = 2;
-    JsonNode? node;
-    payload.TryGetPropertyValue(key, out node);
+    payload.TryGetPropertyValue(key, out JsonNode? node);
     var value = node?.GetValue<string>();
     if (value is not null)
     {
@@ -34,8 +33,7 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
 
   private bool SetShutterDeviceValue(JsonObject payload, string key)
   {
-    JsonNode? shutterNode;
-    payload.TryGetPropertyValue(key, out shutterNode);
+    payload.TryGetPropertyValue(key, out JsonNode? shutterNode);
     if (shutterNode is null)
       return false;
 
@@ -51,8 +49,7 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
   }
   private bool SetTemperatureDeviceValue(JsonObject payload, string key)
   {
-    JsonNode? esp32Node;
-    payload.TryGetPropertyValue(key, out esp32Node);
+    payload.TryGetPropertyValue(key, out JsonNode? esp32Node);
     if (esp32Node is null)
       return false;
 
@@ -73,9 +70,12 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     if (payloadNode is null)
       return;
 
-    JsonNode? node;
-    payloadNode.TryGetPropertyValue("Time", out node);
+    payloadNode.TryGetPropertyValue("Time", out JsonNode? node);
     var time = node?.GetValue<DateTime>();
+    if (time is not null)
+      device.LastUpdate = time.Value;
+    else
+      device.LastUpdate = DateTime.Now;
 
     switch (device.Type)
     {
@@ -108,10 +108,12 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     if (payloadNode is null)
       return;
 
-    JsonNode? node;
-    payloadNode.TryGetPropertyValue("Time", out node);
+    payloadNode.TryGetPropertyValue("Time", out JsonNode? node);
     var time = node?.GetValue<DateTime>();
-
+    if (time is not null)
+      device.LastUpdate = time.Value;
+    else
+      device.LastUpdate = DateTime.Now;
     bool result;
     switch (device.Type)
     {

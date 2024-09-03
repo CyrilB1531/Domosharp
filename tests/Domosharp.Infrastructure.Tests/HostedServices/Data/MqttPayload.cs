@@ -1,4 +1,5 @@
 ﻿using Bogus;
+
 using Domosharp.Infrastructure.Entities;
 
 using Newtonsoft.Json;
@@ -150,23 +151,32 @@ internal static class MqttPayload
 
   public static string GetLightState(string value)
   {
-    var faker = new Faker();
     return JsonConvert.SerializeObject(new TeleSatus1Payload() { POWER = value });
   }
 
   public static string GetTwoLightsState(string value1, string value2)
   {
-    var faker = new Faker();
     return JsonConvert.SerializeObject(new TeleSatus2Payload() { POWER1 = value1, POWER2 = value2 });
   }
 
-  public static SensorPayload GetSensor(int position, int target)
+  public static string GetSensor(int position, int target, bool useEsp32Node = true, bool useTemperature = true)
   {
     var sensor = new SensorPayload();
     sensor.Shutter1.Position = position;
     sensor.Shutter1.Target = target;
-    sensor.ESP32 = new() { Temperature = 49 };
-    return sensor;
+    if (useEsp32Node)
+    {
+      sensor.ESP32 = new()
+      {
+        Temperature = 49
+      };
+      if (!useTemperature)
+      {
+        var result = JsonConvert.SerializeObject(sensor).Replace("\"Temperature\":49.0", string.Empty);
+        return result;
+      }
+    }
+    return JsonConvert.SerializeObject(sensor);
   }
 
 }

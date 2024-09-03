@@ -20,32 +20,36 @@ internal class MqttTasmotaService(
 {
   private readonly List<TasmotaDeviceService> _deviceServices = [];
 
+  private static bool DevicesAreDifferent(TasmotaDevice oldDevice, TasmotaDevice newDevice)
+  {
+    if (oldDevice.SpecificParameters != newDevice.SpecificParameters)
+      return true;
+    if (oldDevice.SignalLevel != newDevice.SignalLevel)
+      return true;
+    if (oldDevice.BatteryLevel != newDevice.BatteryLevel)
+      return true;
+    if (oldDevice.CommandTopic != newDevice.CommandTopic)
+      return true;
+    if (oldDevice.StateTopic != newDevice.StateTopic)
+      return true;
+    if (oldDevice.TelemetryTopic != newDevice.TelemetryTopic)
+      return true;
+    if (oldDevice.Type == newDevice.Type)
+      return true;
+    return false;
+  }
   private async Task ProcessOneSubscriptionDevice(List<TasmotaDevice?> devices, TasmotaDevice newDevice, TasmotaDiscoveryPayload discoveryPayload, CancellationToken cancellationToken)
   {
     if (devices.Count != 0)
     {
-      var oldDevice = devices.FirstOrDefault(a => a is not null && a.DeviceId == discoveryPayload.FullMacAsDeviceId && a.Name == newDevice.Name);
+      var oldDevice = devices.Find(a => a is not null && a.DeviceId == discoveryPayload.FullMacAsDeviceId && a.Name == newDevice.Name);
       if (oldDevice is not null)
       {
         if (!oldDevice.Active)
           return;
 
         // Update
-        var hasChanges = false;
-        if (oldDevice.SpecificParameters != newDevice.SpecificParameters)
-          hasChanges = true;
-        else if (oldDevice.SignalLevel != newDevice.SignalLevel)
-          hasChanges = true;
-        else if (oldDevice.BatteryLevel != newDevice.BatteryLevel)
-          hasChanges = true;
-        else if (oldDevice.CommandTopic != newDevice.CommandTopic)
-          hasChanges = true;
-        else if (oldDevice.StateTopic != newDevice.StateTopic)
-          hasChanges = true;
-        else if (oldDevice.TelemetryTopic != newDevice.TelemetryTopic)
-          hasChanges = true;
-        else if (oldDevice.Type == newDevice.Type)
-          hasChanges = true;
+        var hasChanges = DevicesAreDifferent(oldDevice, newDevice);
 
         if (!hasChanges)
           return;
@@ -66,14 +70,19 @@ internal class MqttTasmotaService(
     _deviceServices.Add(new TasmotaDeviceService(newDevice, DeviceRepository));
   }
 
-  protected override async Task<bool> ProcessMessageReceivedAsync(string topic, string payload, CancellationToken cancellationToken = default)
+  private void AddDeviceServices(List<TasmotaDevice?> devices)
   {
-    var devices = (await DeviceRepository.GetListAsync(Hardware.Id, cancellationToken)).Select(a => a.MapToTasmotaDevice()).Where(a => a is not null && a.Active).ToList();
     if (_deviceServices.Count == 0)
     {
       foreach (var device in devices.Where(a => a is not null))
         _deviceServices.Add(new TasmotaDeviceService(device!, DeviceRepository));
     }
+  }
+
+  protected override async Task<bool> ProcessMessageReceivedAsync(string topic, string payload, CancellationToken cancellationToken = default)
+  {
+    var devices = (await DeviceRepository.GetListAsync(Hardware.Id, cancellationToken)).Select(a => a.MapToTasmotaDevice()).Where(a => a is not null && a.Active).ToList();
+    AddDeviceServices(devices);
 
     if (topic.StartsWith(((IMqttHardware)Hardware).MqttConfiguration.SubscriptionsIn[0]))
     {

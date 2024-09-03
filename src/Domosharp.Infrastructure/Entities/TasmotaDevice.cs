@@ -23,8 +23,8 @@ internal record TasmotaDevice : Device
     else if (discoveryPayload.Relays[0] == RelayType.Shutter)
       Type = DeviceType.Blinds;
     Index = index;
-    if(index is not null)
-    Name = $"{discoveryPayload.DeviceName}_{index}";
+    if (index is not null)
+      Name = $"{discoveryPayload.DeviceName}_{index}";
     States = discoveryPayload.States;
 
     SpecificParameters = JsonConvert.SerializeObject(discoveryPayload);

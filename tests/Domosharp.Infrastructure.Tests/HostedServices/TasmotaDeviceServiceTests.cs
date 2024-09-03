@@ -88,21 +88,68 @@ public class TasmotaDeviceServiceTests
     // Arrange
     var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.Light)) { Value = 50, Type = deviceType };
     var repository = Substitute.For<IDeviceRepository>();
-    repository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>())
-      .Returns(a =>
-      {
-        var device = a.ArgAt<Device>(0);
-        Assert.Equal(50, device.Value);
-        return true;
-      });
 
     var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
 
     // Act
-    await sut.HandleAsync(device.TelemetryTopic + "SENSOR", JsonConvert.SerializeObject(MqttPayload.GetSensor(0,0)), CancellationToken.None);
+    await sut.HandleAsync(device.TelemetryTopic + "SENSOR", MqttPayload.GetSensor(0, 0), CancellationToken.None);
 
     // Assert
     await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+  }
+
+  [Fact]
+  public async Task DeviceService_WithIndexedBlindDeviceTypeAndOneShutterInSensor_DoesNotCallsRepositoryForValue()
+  {
+    // Arrange
+    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.Shutter)) { Value = 50, Type = DeviceType.Blinds, Index = 2 };
+    var repository = Substitute.For<IDeviceRepository>();
+    var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
+
+    // Act
+    await sut.HandleAsync(device.TelemetryTopic + "SENSOR", MqttPayload.GetSensor(0, 0), CancellationToken.None);
+
+    // Assert
+    await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+  }
+
+  [Theory]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task DeviceService_WithTemperatureDeviceTypeAndNoTemperatureInSensor_DoesNotCallsRepositoryForValue(bool useEsp32)
+  {
+    // Arrange
+    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.Shutter)) { Value = 50, Type = DeviceType.Sensor };
+    var repository = Substitute.For<IDeviceRepository>();
+    var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
+
+    // Act
+    await sut.HandleAsync(device.TelemetryTopic + "SENSOR", MqttPayload.GetSensor(0, 0, useEsp32, false), CancellationToken.None);
+
+    // Assert
+    await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+  }
+
+  [Fact]
+  public async Task DeviceService_WithTemperatureDeviceTypeAndTemperatureInSensor_DoesCallsRepositoryForValue()
+  {
+    // Arrange
+    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.Shutter)) { Value = 50, Type = DeviceType.Sensor };
+    var repository = Substitute.For<IDeviceRepository>();
+    repository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>())
+    .Returns(a =>
+    {
+      var device = a.ArgAt<Device>(0);
+      Assert.Equal(49, device.Value);
+      return true;
+    });
+    var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
+
+    // Act
+    await sut.HandleAsync(device.TelemetryTopic + "SENSOR", MqttPayload.GetSensor(0, 0), CancellationToken.None);
+
+    // Assert
+    await repository.Received(1).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
   }
 
   private class SutBuilder

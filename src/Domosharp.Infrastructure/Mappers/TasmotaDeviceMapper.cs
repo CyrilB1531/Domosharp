@@ -28,9 +28,16 @@ namespace Domosharp.Infrastructure.Mappers
     {
       if (string.IsNullOrWhiteSpace(device.SpecificParameters))
         return null;
-      var discoveryPayload = JsonConvert.DeserializeObject<TasmotaDiscoveryPayload>(device.SpecificParameters);
-      if (discoveryPayload is null)
+
+      TasmotaDiscoveryPayload discoveryPayload;
+      try
+      {
+        discoveryPayload = JsonConvert.DeserializeObject<TasmotaDiscoveryPayload>(device.SpecificParameters, new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error })!;
+      }
+      catch
+      {
         return null;
+      }
 
       return GetTasmotaDevice(device, discoveryPayload);
     }

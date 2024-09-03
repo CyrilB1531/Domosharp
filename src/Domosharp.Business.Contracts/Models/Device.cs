@@ -29,7 +29,7 @@ public record Device
 
   public int Order { get; set; }
 
-  public DateTime LastUpdate { get; init; }
+  public DateTime LastUpdate { get; set; }
 
   public bool Protected { get; set; }
 

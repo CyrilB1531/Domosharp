@@ -24,12 +24,6 @@ using Domosharp.Business.Implementation.HostedServices;
 using Domosharp.Business.Contracts.Configurations;
 using Domosharp.Business.Implementation.Configurations;
 
-namespace Domosharp.Api;
-
-public partial class Program
-{
-  public static async Task Main(string[] args)
-  {
     var builder = WebApplication.CreateBuilder(args);
 
     var configuration = new ConfigurationBuilder()
@@ -138,9 +132,9 @@ public partial class Program
       await worker.StartAsync(CancellationToken.None);
 
     await app.RunAsync();
-  }
 
-  private static string GetWebUri(IDomosharpConfiguration configuration)
+public partial class Program {
+  public static string GetWebUri(IDomosharpConfiguration configuration)
   {
     var webBind = configuration.Web?.Address;
     if (string.IsNullOrWhiteSpace(webBind))
@@ -149,7 +143,7 @@ public partial class Program
     return $"http://{webBind}:{webPort}";
   }
 
-  private static string? GetSSLUri(IDomosharpConfiguration configuration)
+  public static string? GetSSLUri(IDomosharpConfiguration configuration)
   {
     var sslWebBind = configuration.Ssl?.Address;
     if (string.IsNullOrEmpty(sslWebBind))

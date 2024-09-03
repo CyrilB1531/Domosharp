@@ -59,7 +59,7 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
 
-    var entity = device.MapToEntity(GetMaxId(), DateTime.UtcNow);
+    var entity = device.MapToEntity(GetMaxId());
     await connection.InsertAsync(entity);
     return entity.MapToModel();
   }
@@ -81,7 +81,7 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
 
-    return await connection.UpdateAsync(device.MapToEntity(device.Id, DateTime.UtcNow));
+    return await connection.UpdateAsync(device.MapToEntity(device.Id));
   }
 
   public async Task<Device?> GetAsync(int id, CancellationToken cancellationToken = default)
