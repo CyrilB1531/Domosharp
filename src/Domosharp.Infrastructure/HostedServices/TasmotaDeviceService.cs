@@ -2,15 +2,42 @@
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
 
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Domosharp.Infrastructure.HostedServices;
 
 internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository deviceRepository)
 {
-  private Task HandleStateTopicAsync(string command, string payload, CancellationToken cancellationToken = default)
+  private async Task HandleStateTopicAsync(string command, string payload, CancellationToken cancellationToken = default)
   {
-    return Task.CompletedTask;
+    if (command != "RESULT")
+      return;
+    if (string.IsNullOrEmpty(payload))
+      return;
+
+    switch (device.Type)
+    {
+      case DeviceType.Blinds:
+        JsonNode jsonPayload = JsonNode.Parse(payload)!;
+        TasmotaShutterPayload? shutter;
+        if (device.Index is null || device.Index <= 1)
+          shutter = jsonPayload["Shutter1"]?.Deserialize<TasmotaShutterPayload>();
+        else
+          shutter = jsonPayload[$"Shutter{device.Index}"]?.Deserialize<TasmotaShutterPayload>();
+
+        if(shutter is null) 
+          return;
+        if(shutter.Position != shutter.Target)
+          return;
+        if(device.Value == shutter.Position) 
+          return;
+        device.Value = shutter.Position;
+        await deviceRepository.UpdateAsync(device, cancellationToken);
+        break;
+      default:
+        break;
+    }
   }
 
   private void SetDeviceValue(JsonObject payload, string key)

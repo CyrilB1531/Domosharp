@@ -127,14 +127,6 @@ internal static class MqttPayload
     public WifiSatusPayload Wifi { get; } = new WifiSatusPayload();
   }
 
-  public record ShutterSensorPayload
-  {
-    public int Position { get; set; }
-    public int Direction { get; set; }
-    public int Target { get; set; }
-    public int Tilt { get; set; }
-  }
-
   public record Esp32Payload
   {
     public decimal Temperature { get; set; }
@@ -146,7 +138,7 @@ internal static class MqttPayload
     public string Switch1 { get; set; } = "OFF";
     public string Switch2 { get; set; } = "OFF";
     public Esp32Payload? ESP32 { get; set; }
-    public ShutterSensorPayload Shutter1 { get; set; } = new ShutterSensorPayload();
+    public TasmotaShutterPayload Shutter1 { get; set; } = new TasmotaShutterPayload();
   }
 
   public static string GetLightState(string value)
@@ -177,6 +169,19 @@ internal static class MqttPayload
       }
     }
     return JsonConvert.SerializeObject(sensor);
+  }
+
+  public static string GetResultState(int position, int target)
+  {
+    var shutter1 = new TasmotaShutterPayload()
+    {
+      Direction = 0,
+      Position = position,
+      Target = target,
+      Tilt = 0
+    };
+    var result = "{\"Shutter1\":" + JsonConvert.SerializeObject(shutter1) + "}";
+    return result;
   }
 
 }

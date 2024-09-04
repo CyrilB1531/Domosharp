@@ -133,7 +133,10 @@ using Domosharp.Business.Implementation.Configurations;
 
     await app.RunAsync();
 
-public partial class Program {
+#pragma warning disable S1118 // Utility classes should not have public constructors
+public partial class Program
+#pragma warning restore S1118 // Utility classes should not have public constructors
+{
   public static string GetWebUri(IDomosharpConfiguration configuration)
   {
     var webBind = configuration.Web?.Address;
