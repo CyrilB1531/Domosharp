@@ -1,39 +1,30 @@
 ﻿namespace Domosharp.Infrastructure.Entities
 {
-  internal class ShutterOption
+  internal class ShutterOption(byte value)
   {
-    
-    public ShutterOption(byte value) {
-      Invert = (value & 1) != 0;
-      Lock = (value & 2) != 0;
-      ExtraEndStop = (value & 4) != 0;
-      InvertWebButtons = (value & 8) != 0;
-      ExtraStopRelay = (value & 16) != 0;
-    }
+    public bool Invert { get; init; } = (value & 1) != 0;
 
-    public bool Invert {  get; init; }
+    public bool Lock { get; init; } = (value & 2) != 0;
 
-    public bool Lock { get; init; }
+    public bool ExtraEndStop { get; init; } = (value & 4) != 0;
+    public bool InvertWebButtons { get; init; } = (value & 8) != 0;
+    public bool ExtraStopRelay { get; init; } = (value & 16) != 0;
 
-    public bool ExtraEndStop { get; init; }
-    public bool InvertWebButtons { get; init; }
-    public bool ExtraStopRelay { get; init; }
-    
     public byte GetValue()
     {
-      byte value = 0;
+      byte newValue = 0;
       if (Invert)
-        value |= 1;
+        newValue |= 1;
       if (Lock)
-        value |= 2;
+        newValue |= 2;
       if (ExtraEndStop)
-        value |= 4;
+        newValue |= 4;
       if (InvertWebButtons)
-        value |= 8;
+        newValue |= 8;
       if (ExtraStopRelay)
-        value |= 16;
+        newValue |= 16;
 
-      return value;
+      return newValue;
     }
   }
 }

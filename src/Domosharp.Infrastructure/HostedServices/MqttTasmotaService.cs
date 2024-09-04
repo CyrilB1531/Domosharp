@@ -110,6 +110,13 @@ internal class MqttTasmotaService(
     if (devices.Exists(a => a is not null && a.Type == DeviceType.Sensor && a.MacAddress == device.MacAddress))
       return true;
     var newDevice = new TasmotaDevice(Hardware, JsonSerializer.Deserialize<TasmotaDiscoveryPayload>(device.SpecificParameters!, JsonExtensions.FullObjectOnDeserializing)!) { Type = DeviceType.Sensor };
+    var json = JsonNode.Parse(payload);
+    if (json is null)
+      return false;
+
+    var time = json["time"]?.AsValue()?.GetValue<DateTime>();
+    if(time is not null)
+      device.LastUpdate = time.Value;
     devices.Add(newDevice);
     await DeviceRepository.CreateAsync(newDevice, cancellationToken);
     var service = new TasmotaDeviceService(newDevice, DeviceRepository);
@@ -123,8 +130,6 @@ internal class MqttTasmotaService(
     var json = JsonNode.Parse(payload);
     if (json is null)
       return false;
-
-    var time = json["time"]?.AsValue()?.GetValue<DateTime>();
 
     if (json["ESP32"] is not null)
       await ProcessTemperatureDeviceMessage(devices, device, payload, cancellationToken);
