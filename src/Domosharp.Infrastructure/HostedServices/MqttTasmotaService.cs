@@ -22,22 +22,9 @@ internal class MqttTasmotaService(
 
   private static bool DevicesAreDifferent(TasmotaDevice oldDevice, TasmotaDevice newDevice)
   {
-    if (oldDevice.SpecificParameters != newDevice.SpecificParameters)
-      return true;
-    if (oldDevice.SignalLevel != newDevice.SignalLevel)
-      return true;
-    if (oldDevice.BatteryLevel != newDevice.BatteryLevel)
-      return true;
-    if (oldDevice.CommandTopic != newDevice.CommandTopic)
-      return true;
-    if (oldDevice.StateTopic != newDevice.StateTopic)
-      return true;
-    if (oldDevice.TelemetryTopic != newDevice.TelemetryTopic)
-      return true;
-    if (oldDevice.Type == newDevice.Type)
-      return true;
-    return false;
+    return oldDevice.SpecificParameters != newDevice.SpecificParameters;
   }
+
   private async Task ProcessOneSubscriptionDevice(List<TasmotaDevice?> devices, TasmotaDevice newDevice, TasmotaDiscoveryPayload discoveryPayload, CancellationToken cancellationToken)
   {
     if (devices.Count != 0)
