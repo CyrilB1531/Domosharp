@@ -4,12 +4,14 @@ using Domosharp.Infrastructure.HostedServices;
 
 using DotNetCore.CAP;
 
+using Microsoft.Extensions.Logging.Abstractions;
+
 using System.Diagnostics.CodeAnalysis;
 
 namespace Domosharp.Common.Tests.HostedServices;
 
 [ExcludeFromCodeCoverage]
-public class HardwareBaseServiceSutTest(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware)
+public class HardwareBaseServiceSutTest(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware, NullLogger.Instance)
 {
   public override Task ConnectAsync(CancellationToken cancellationToken)
   {

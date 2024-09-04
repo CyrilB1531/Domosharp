@@ -1,6 +1,6 @@
 ﻿using Domosharp.Business.Contracts.Models;
 
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Domosharp.Infrastructure.Entities;
 
@@ -8,6 +8,8 @@ internal record TasmotaDevice : Device
 {
   public TasmotaDevice(IHardware? hardware, TasmotaDiscoveryPayload discoveryPayload, int? index = null)
   {
+    if (discoveryPayload.TopicsForCommandStatAndTele.Count != 3)
+      throw new ArgumentException("TopicsForCommandStatAndTele has not exactly 3 items.", nameof(discoveryPayload));
     const string prefix = "%prefix%";
     DeviceId = discoveryPayload.FullMacAsDeviceId;
     Hardware = hardware;
@@ -26,8 +28,9 @@ internal record TasmotaDevice : Device
     if (index is not null)
       Name = $"{discoveryPayload.DeviceName}_{index}";
     States = discoveryPayload.States;
+    MacAddress = discoveryPayload.FullMacAsDeviceId;
 
-    SpecificParameters = JsonConvert.SerializeObject(discoveryPayload);
+    SpecificParameters = JsonSerializer.Serialize(discoveryPayload, JsonExtensions.FullObjectOnDeserializing);
   }
 
   public string TelemetryTopic { get; }
@@ -35,6 +38,8 @@ internal record TasmotaDevice : Device
   public string StateTopic { get; }
 
   public string CommandTopic { get; }
+
+  public string MacAddress { get; }
 
   public List<string?> States { get; }
 }

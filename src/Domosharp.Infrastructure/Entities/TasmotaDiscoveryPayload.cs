@@ -18,9 +18,9 @@ internal record TasmotaDiscoveryPayload
   [JsonPropertyName("md")]
   public string ModuleOrTemplateName { get; set; } = string.Empty;
   [JsonPropertyName("ty")]
-  public int TuyaMCUFlag { get; set; }
+  public bool TuyaMCUFlag { get; set; }
   [JsonPropertyName("if")]
-  public int IfanDevicesFlag { get; set; }
+  public bool IfanDevicesFlag { get; set; }
   [JsonPropertyName("ofln")]
   public string OfflinePayload { get; set; } = string.Empty;
   [JsonPropertyName("onln")]
@@ -38,11 +38,11 @@ internal record TasmotaDiscoveryPayload
   [JsonPropertyName("rl")]
   public List<RelayType> Relays { get; set; } = [];
   [JsonPropertyName("swc")]
-  public List<int> SwitchModes { get; set; } = [];
+  public List<SwitchMode> SwitchModes { get; set; } = [];
   [JsonPropertyName("swn")]
   public List<string?> SwitchNames { get; set; } = [];
   [JsonPropertyName("btn")]
-  public List<int> ButtonFlag { get; set; } = [];
+  public List<bool> ButtonFlag { get; set; } = [];
   [JsonPropertyName("so")]
   public Dictionary<string, int> SetOptions { get; set; } = [];
   [JsonPropertyName("lk")]
@@ -54,7 +54,7 @@ internal record TasmotaDiscoveryPayload
   [JsonPropertyName("dslp")]
   public int DeepSleep { get; set; }
   [JsonPropertyName("sho")]
-  public List<int> ShutterOptions { get; set; } = [];
+  public List<ShutterOption> ShutterOptions { get; set; } = []; // bit1:INVERT bit2: LOCK  bit3: ExtraEndStop bit4: INVert WebButtons bit5: extraStopRelay
   [JsonPropertyName("sht")]
   public List<int> ShutterTilt { get; set; } = [];
   [JsonPropertyName("ver")]

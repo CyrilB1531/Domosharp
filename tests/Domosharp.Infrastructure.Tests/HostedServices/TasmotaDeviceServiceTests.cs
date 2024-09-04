@@ -1,12 +1,8 @@
-﻿using Bogus;
-
-using Domosharp.Business.Contracts.Models;
+﻿using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
 using Domosharp.Infrastructure.HostedServices;
 using Domosharp.Infrastructure.Tests.HostedServices.Data;
-
-using Newtonsoft.Json;
 
 using NSubstitute;
 
@@ -154,41 +150,46 @@ public class TasmotaDeviceServiceTests
   }
 
   [Theory]
-  [InlineData(0)]
-  [InlineData(100)]
-  public async Task DeviceService_WithBlindDeviceAndChangedResultStatePayload_CallsRepositoryForValue(int position)
+  [InlineData(1, 0)]
+  [InlineData(1, 100)]
+  [InlineData(2, 0)]
+  [InlineData(2, 100)]
+  public async Task DeviceService_WithBlindDeviceAndChangedResultStatePayload_CallsRepositoryForValue(int shutterIndex, int position)
   {
     // Arrange
-    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.Shutter)) { Value = 50, Type = DeviceType.Blinds };
+    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(shutterIndex, RelayType.Shutter)) { Value = 50, Type = DeviceType.Blinds, Index = shutterIndex };
     var repository = Substitute.For<IDeviceRepository>();
     repository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>())
     .Returns(a =>
     {
       var device = a.ArgAt<Device>(0);
       Assert.Equal(position, device.Value);
+      Assert.Equal(shutterIndex, device.Index);
       return true;
     });
     var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
 
     // Act
-    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(position, position), CancellationToken.None);
+    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(shutterIndex, position, position), CancellationToken.None);
 
     // Assert
     await repository.Received(1).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
   }
 
   [Theory]
-  [InlineData(0)]
-  [InlineData(100)]
-  public async Task DeviceService_WithBlindDeviceAndTargetNotReachedResultStatePayload_DoesNotCallsRepositoryForValue(int position)
+  [InlineData(1, 0)]
+  [InlineData(1, 100)]
+  [InlineData(2, 0)]
+  [InlineData(2, 100)]
+  public async Task DeviceService_WithBlindDeviceAndTargetNotReachedResultStatePayload_DoesNotCallsRepositoryForValue(int shutterIndex, int position)
   {
     // Arrange
-    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.Shutter)) { Value = 50, Type = DeviceType.Blinds };
+    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(shutterIndex, RelayType.Shutter)) { Value = 50, Type = DeviceType.Blinds, Index = shutterIndex };
     var repository = Substitute.For<IDeviceRepository>();
     var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
 
     // Act
-    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(position, position + 1), CancellationToken.None);
+    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(shutterIndex, position, position + 1), CancellationToken.None);
 
     // Assert
     await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
@@ -203,7 +204,7 @@ public class TasmotaDeviceServiceTests
     var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
 
     // Act
-    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(50, 50), CancellationToken.None);
+    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(1, 50, 50), CancellationToken.None);
 
     // Assert
     await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
@@ -218,7 +219,37 @@ public class TasmotaDeviceServiceTests
     var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
 
     // Act
-    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(100, 100), CancellationToken.None);
+    await sut.HandleAsync(device.StateTopic + "RESULT", MqttPayload.GetResultState(1, 100, 100), CancellationToken.None);
+
+    // Assert
+    await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+  }
+
+  [Fact]
+  public async Task DeviceService_WitUnknownStateCommand_DoNothing()
+  {
+    // Arrange
+    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.None)) { Value = 50, Type = DeviceType.Sensor };
+    var repository = Substitute.For<IDeviceRepository>();
+    var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
+
+    // Act
+    await sut.HandleAsync(device.StateTopic + "TEST", MqttPayload.GetResultState(1, 100, 100), CancellationToken.None);
+
+    // Assert
+    await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+  }
+
+  [Fact]
+  public async Task DeviceService_WithoutPayload_DoNqthing()
+  {
+    // Arrange
+    var device = new TasmotaDevice(Substitute.For<IHardware>(), MqttPayload.GetDevicesPayload(1, RelayType.None)) { Value = 50, Type = DeviceType.Sensor };
+    var repository = Substitute.For<IDeviceRepository>();
+    var sut = new SutBuilder().WithDevice(device).WithDeviceRepository(repository).Build();
+
+    // Act
+    await sut.HandleAsync(device.StateTopic + "RESULT", string.Empty, CancellationToken.None);
 
     // Assert
     await repository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());

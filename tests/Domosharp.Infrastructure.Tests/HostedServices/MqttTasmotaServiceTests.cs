@@ -10,14 +10,16 @@ using Domosharp.Infrastructure.Tests.HostedServices.Data;
 
 using DotNetCore.CAP;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 using MQTTnet.Diagnostics;
 using MQTTnet.Extensions.ManagedClient;
-
-using Newtonsoft.Json;
 
 using NSubstitute;
 
 using System.Text;
+using System.Text.Json;
 
 namespace Domosharp.Infrastructure.Tests.HostedServices;
 
@@ -265,7 +267,7 @@ public class MqttTasmotaServiceTests
 
   private static Task<bool> CreateMqttTasmotaDiscoveryMessage(MqttClientTest client, TasmotaDiscoveryPayload payload)
   {
-    return CreateMqttTasmotaMessage(client, $"Tasmota/Discovery/{payload.FullMacAsDeviceId}/config", JsonConvert.SerializeObject(payload));
+    return CreateMqttTasmotaMessage(client, $"Tasmota/Discovery/{payload.FullMacAsDeviceId}/config", JsonSerializer.Serialize(payload, JsonExtensions.FullObjectOnDeserializing));
   }
 
   private static async Task<bool> CreateMqttTasmotaMessage(MqttClientTest client, string topic, string payload)
@@ -289,6 +291,7 @@ public class MqttTasmotaServiceTests
     private readonly IManagedMqttClient _clientOut = Substitute.For<IManagedMqttClient>();
     private readonly MqttConfiguration _mqttConfiguration;
     private readonly IMqttHardware _hardware;
+    private readonly ILogger _logger;
 
     public SutBuilder()
     {
@@ -302,6 +305,7 @@ public class MqttTasmotaServiceTests
       _hardware = Substitute.For<IMqttHardware>();
       _hardware.Type.Returns(HardwareType.MQTTTasmota);
       _hardware.MqttConfiguration.Returns(_mqttConfiguration);
+      _logger = NullLogger.Instance;
     }
 
     public SutBuilder WithDeviceRepository(IDeviceRepository deviceRepository)
@@ -318,7 +322,7 @@ public class MqttTasmotaServiceTests
 
     public async Task<MqttTasmotaService> BuildAsync(CancellationToken cancellationToken)
     {
-      var service = new MqttTasmotaService(_capPublisher, _deviceRepository, _clientIn, _clientOut, _hardware);
+      var service = new MqttTasmotaService(_capPublisher, _deviceRepository, _clientIn, _clientOut, _hardware, _logger);
       await service.ConnectAsync(cancellationToken);
       return service;
     }

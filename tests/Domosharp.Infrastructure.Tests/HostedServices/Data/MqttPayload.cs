@@ -2,7 +2,7 @@
 
 using Domosharp.Infrastructure.Entities;
 
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Domosharp.Infrastructure.Tests.HostedServices.Data;
 
@@ -91,8 +91,8 @@ internal static class MqttPayload
         device.HostName = $"tasmota-{mac[7..]}";
         device.FullMacAsDeviceId = mac;
         device.ModuleOrTemplateName = faker.Name.LastName();
-        device.TuyaMCUFlag = 0;
-        device.IfanDevicesFlag = 0;
+        device.TuyaMCUFlag = false;
+        device.IfanDevicesFlag = false;
         device.OfflinePayload = "Offline";
         device.OnlinePayload = "Online";
         device.States = ["OFF", "ON", "TOGGLE", "HOLD"];
@@ -101,12 +101,24 @@ internal static class MqttPayload
         device.FullTopic = "%prefix%/%topic%/";
         device.TopicsForCommandStatAndTele = ["cmnd", "stat", "tele"];
         device.Relays = deviceTypes;
-        device.SwitchModes = [ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-  -1, -1, -1, -1, -1, -1, -1, -1, -1];
+        device.SwitchModes = [ 
+          SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
+          SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
+          SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
+          SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
+          SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
+          SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
+          SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None];
         device.SwitchNames = [ null, null, null, null, null, null, null, null, null, null, null, null,
   null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
-        device.ButtonFlag = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0];
+        device.ButtonFlag = [ false, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false,
+          false, false, false, false];
         device.SetOptions = new Dictionary<string, int>() { { "4", 0 }, { "11", 0}, { "13", 0}, { "17", 1},
   { "20", 0}, { "30", 0}, { "68", 0}, { "73", 0}, { "82", 0}, { "114", 0}, { "117", 0}};
         device.LightCTRGBlinked = 0;
@@ -176,12 +188,12 @@ internal static class MqttPayload
 
   public static string GetLightState(string value)
   {
-    return JsonConvert.SerializeObject(new TeleSatus1Payload() { POWER = value });
+    return JsonSerializer.Serialize(new TeleSatus1Payload() { POWER = value }, JsonExtensions.FullObjectOnDeserializing);
   }
 
   public static string GetTwoLightsState(string value1, string value2)
   {
-    return JsonConvert.SerializeObject(new TeleSatus2Payload() { POWER1 = value1, POWER2 = value2 });
+    return JsonSerializer.Serialize(new TeleSatus2Payload() { POWER1 = value1, POWER2 = value2 }, JsonExtensions.FullObjectOnDeserializing);
   }
 
   public static string GetSensor(int position, int target, bool useEsp32Node = true, bool useTemperature = true)
@@ -197,14 +209,14 @@ internal static class MqttPayload
       };
       if (!useTemperature)
       {
-        var result = JsonConvert.SerializeObject(sensor).Replace("\"Temperature\":49.0", string.Empty);
+        var result = JsonSerializer.Serialize(sensor, JsonExtensions.FullObjectOnDeserializing).Replace("\"Temperature\":49", string.Empty);
         return result;
       }
     }
-    return JsonConvert.SerializeObject(sensor);
+    return JsonSerializer.Serialize(sensor, JsonExtensions.FullObjectOnDeserializing);
   }
 
-  public static string GetResultState(int position, int target)
+  public static string GetResultState(int shutterIndex, int position, int target)
   {
     var shutter1 = new TasmotaShutterPayload()
     {
@@ -213,7 +225,7 @@ internal static class MqttPayload
       Target = target,
       Tilt = 0
     };
-    var result = "{\"Shutter1\":" + JsonConvert.SerializeObject(shutter1) + "}";
+    var result = "{\"Shutter" + shutterIndex + "\":" + JsonSerializer.Serialize(shutter1, JsonExtensions.FullObjectOnDeserializing) + "}";
     return result;
   }
 

@@ -85,6 +85,8 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     var temperature = temperatureNode?.GetValue<decimal>();
     if (temperature is null)
       return false;
+    if (device.Value == temperature)
+      return false;
     device.Value = temperature;
     return true;
   }

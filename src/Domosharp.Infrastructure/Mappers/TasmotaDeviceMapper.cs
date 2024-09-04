@@ -1,7 +1,7 @@
 ﻿using Domosharp.Business.Contracts.Models;
 using Domosharp.Infrastructure.Entities;
 
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Domosharp.Infrastructure.Mappers
 {
@@ -32,7 +32,7 @@ namespace Domosharp.Infrastructure.Mappers
       TasmotaDiscoveryPayload discoveryPayload;
       try
       {
-        discoveryPayload = JsonConvert.DeserializeObject<TasmotaDiscoveryPayload>(device.SpecificParameters, new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error })!;
+        discoveryPayload = JsonSerializer.Deserialize<TasmotaDiscoveryPayload>(device.SpecificParameters, JsonExtensions.FullObjectOnDeserializing)!;
       }
       catch
       {

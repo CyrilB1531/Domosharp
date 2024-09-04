@@ -3,9 +3,11 @@ using Domosharp.Business.Contracts.Repositories;
 
 using DotNetCore.CAP;
 
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace Domosharp.Infrastructure.HostedServices;
 
-internal class DummyService(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware)
+internal class DummyService(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware, NullLogger.Instance)
 {
 
   public override Task ConnectAsync(CancellationToken cancellationToken)
