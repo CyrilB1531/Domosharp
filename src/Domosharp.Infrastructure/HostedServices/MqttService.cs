@@ -12,6 +12,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using Domosharp.Infrastructure.Entities;
 using Domosharp.Infrastructure.Hardwares;
+using Microsoft.Extensions.Logging;
 
 namespace Domosharp.Infrastructure.HostedServices;
 
@@ -27,7 +28,8 @@ internal class MqttService : HardwareServiceBase
     IDeviceRepository deviceRepository,
     IManagedMqttClient clientIn,
     IManagedMqttClient clientOut,
-    IMqttHardware hardware) : base(capPublisher, deviceRepository, hardware)
+    IMqttHardware hardware,
+    ILogger logger) : base(capPublisher, deviceRepository, hardware, logger)
   {
     if(!(hardware.Type is HardwareType.MQTT or HardwareType.MQTTTasmota))
       throw new ArgumentException("Hardware is not Mqtt type", nameof(hardware));

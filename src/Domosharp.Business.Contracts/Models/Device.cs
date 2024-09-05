@@ -29,7 +29,7 @@ public record Device
 
   public int Order { get; set; }
 
-  public DateTime LastUpdate { get; init; }
+  public DateTime LastUpdate { get; set; }
 
   public bool Protected { get; set; }
 
@@ -37,5 +37,7 @@ public record Device
 
   public IHardware? Hardware { get; set; }
 
-  public int? Value {  get; set; }
+  public decimal? Value {  get; set; }
+
+  public int? Index { get; set; }
 }

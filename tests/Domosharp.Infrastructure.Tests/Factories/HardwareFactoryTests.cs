@@ -11,12 +11,11 @@ using Domosharp.Infrastructure.Repositories;
 
 using Microsoft.Extensions.Logging;
 
-using Newtonsoft.Json;
-
 using NSubstitute;
 
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Domosharp.Infrastructure.Tests.Factories;
 
@@ -266,7 +265,7 @@ public class HardwareFactoryTests
       LogLevel = (int)faker.PickRandom<LogLevel>(),
       Order = faker.Random.Int(1),
       Type = (int)type,
-      Configuration = JsonConvert.SerializeObject(mqttConfiguration)
+      Configuration = JsonSerializer.Serialize(mqttConfiguration)
     }, configuration);
   }
 
@@ -306,7 +305,7 @@ public class HardwareFactoryTests
   private static string GetMqttConfiguration(int? port = null)
   {
     var faker = new Faker();
-    return JsonConvert.SerializeObject(new MqttConfiguration()
+    return JsonSerializer.Serialize(new MqttConfiguration()
     {
       Address = faker.Internet.IpAddress().ToString(),
       Port = port??faker.Internet.Port(),

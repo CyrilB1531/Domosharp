@@ -1,8 +1,7 @@
 using Domosharp.Api.Models;
 
-using Newtonsoft.Json;
-
 using System.Net;
+using System.Text.Json;
 
 namespace Domosharp.Integration.Tests;
 
@@ -25,7 +24,7 @@ public class HardwareControllerTests
     var responseString = await response.Content.ReadAsStringAsync();
     Assert.NotNull(responseString);
     Assert.NotEmpty(responseString);
-    var hardwares = JsonConvert.DeserializeObject<IEnumerable<HardwareResponse>>(responseString);
+    var hardwares = JsonSerializer.Deserialize<IEnumerable<HardwareResponse>>(responseString);
     Assert.NotNull(hardwares);
     client.Dispose();
     await server.DisposeAsync();

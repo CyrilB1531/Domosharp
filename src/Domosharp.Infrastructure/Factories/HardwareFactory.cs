@@ -6,10 +6,9 @@ using Domosharp.Infrastructure.Repositories;
 
 using Microsoft.Extensions.Logging;
 
-using Newtonsoft.Json;
-
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Domosharp.Infrastructure.Factories;
 
@@ -36,9 +35,9 @@ internal class HardwareFactory(
 
   private static MqttConfiguration GetMqttConfiguration(string? request)
   {
-    if (request is null)
-      throw new ArgumentException(HardwareConfigurationNotFound, nameof(request));
-    var mqttConfiguration = JsonConvert.DeserializeObject<MqttConfiguration>(request) ?? throw new ArgumentException("Hardware configuration not found", nameof(request));
+    if(string.IsNullOrEmpty(request))
+        throw new ArgumentException(HardwareConfigurationNotFound, nameof(request));
+    var mqttConfiguration = JsonSerializer.Deserialize<MqttConfiguration>(request) ?? throw new ArgumentException("Hardware configuration not found", nameof(request));
     if (mqttConfiguration.Port > 65535 || mqttConfiguration.Port <= 0)
       throw new ArgumentOutOfRangeException(nameof(request), PortOutOfRange);
     return mqttConfiguration;

@@ -146,13 +146,13 @@ public class MqttRepositoryTests
   {
     // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
-    var sut = SutBuilder.Build(connection);
+    var (Repository, Configuration) = SutBuilder.Build(connection);
 
-    var expected1 = await CreateMqttHardwareInDatabaseAsync(connection, sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
-    await CreateMqttHardwareInDatabaseAsync(connection, sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var expected1 = await CreateMqttHardwareInDatabaseAsync(connection, Configuration.Aes.Key, Configuration.Aes.IV);
+    await CreateMqttHardwareInDatabaseAsync(connection, Configuration.Aes.Key, Configuration.Aes.IV);
 
     // Act
-    var result = await sut.Repository.GetAsync(expected1.Id, CancellationToken.None);
+    var result = await Repository.GetAsync(expected1.Id, CancellationToken.None);
 
     // Assert
     CheckEntity(result, expected1);
@@ -162,12 +162,12 @@ public class MqttRepositoryTests
   public async Task Get_WithUnknownId_ReturnsNull()
   {
     // Arrange
-    var sut = SutBuilder.Build(FakeDBConnectionFactory.GetConnection());
+    var (Repository, Configuration) = SutBuilder.Build(FakeDBConnectionFactory.GetConnection());
 
-    var expected = CreateMqttEntity(sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var expected = CreateMqttEntity(Configuration.Aes.Key, Configuration.Aes.IV);
 
     // Act
-    var result = await sut.Repository.GetAsync(expected.Id, CancellationToken.None);
+    var result = await Repository.GetAsync(expected.Id, CancellationToken.None);
 
     // Assert
     Assert.Null(result);
@@ -178,14 +178,14 @@ public class MqttRepositoryTests
   {
     // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
-    var sut = SutBuilder.Build(connection);
+    var (Repository, Configuration) = SutBuilder.Build(connection);
 
-    var expected = CreateMqttEntity(sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var expected = CreateMqttEntity(Configuration.Aes.Key, Configuration.Aes.IV);
 
-    var h = CreateHardwareFromEntity(expected, sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var h = CreateHardwareFromEntity(expected, Configuration.Aes.Key, Configuration.Aes.IV);
 
     // Act
-    await sut.Repository.CreateAsync(h, CancellationToken.None);
+    await Repository.CreateAsync(h, CancellationToken.None);
 
     // Assert
     var result = await connection.GetAsync(new MqttEntity(expected.Id));
@@ -199,14 +199,14 @@ public class MqttRepositoryTests
   {
     // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
-    var sut = SutBuilder.Build(connection);
+    var (Repository, Configuration) = SutBuilder.Build(connection);
 
-    var expected = CreateMqttEntity(sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var expected = CreateMqttEntity(Configuration.Aes.Key, Configuration.Aes.IV);
 
     var h = CreateDummyHardwareFromEntity(expected);
 
     // Act
-    await sut.Repository.CreateAsync(h, CancellationToken.None);
+    await Repository.CreateAsync(h, CancellationToken.None);
 
     // Assert
     var result = await connection.GetAsync(new MqttEntity(expected.Id));
@@ -218,16 +218,16 @@ public class MqttRepositoryTests
   {
     // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
-    var sut = SutBuilder.Build(connection);
+    var (Repository, Configuration) = SutBuilder.Build(connection);
 
-    var entity = await CreateMqttHardwareInDatabaseAsync(connection, sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
-    var expected = CreateMqttEntity(sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var entity = await CreateMqttHardwareInDatabaseAsync(connection, Configuration.Aes.Key, Configuration.Aes.IV);
+    var expected = CreateMqttEntity(Configuration.Aes.Key, Configuration.Aes.IV);
     expected.Id = entity.Id;
 
-    var h = CreateHardwareFromEntity(expected, sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var h = CreateHardwareFromEntity(expected, Configuration.Aes.Key, Configuration.Aes.IV);
 
     // Act
-    await sut.Repository.UpdateAsync(h, CancellationToken.None);
+    await Repository.UpdateAsync(h, CancellationToken.None);
 
     // Assert
     var result = await connection.GetAsync(new MqttEntity(expected.Id));
@@ -241,16 +241,16 @@ public class MqttRepositoryTests
   {
     // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
-    var sut = SutBuilder.Build(connection);
+    var (Repository, Configuration) = SutBuilder.Build(connection);
 
-    var ex = await CreateMqttHardwareInDatabaseAsync(connection, sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
-    var expected = CreateMqttEntity(sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var ex = await CreateMqttHardwareInDatabaseAsync(connection, Configuration.Aes.Key, Configuration.Aes.IV);
+    var expected = CreateMqttEntity(Configuration.Aes.Key, Configuration.Aes.IV);
     expected.Id = ex.Id;
 
     var h = CreateDummyHardwareFromEntity(expected);
 
     // Act
-    await sut.Repository.UpdateAsync(h, CancellationToken.None);
+    await Repository.UpdateAsync(h, CancellationToken.None);
 
     // Assert
     var result = await connection.GetAsync(new MqttEntity(expected.Id));
@@ -264,12 +264,12 @@ public class MqttRepositoryTests
   {
     // Arrange
     using var connection = FakeDBConnectionFactory.GetConnection();
-    var sut = SutBuilder.Build(connection);
+    var (Repository, Configuration) = SutBuilder.Build(connection);
 
-    var expected = await CreateMqttHardwareInDatabaseAsync(connection, sut.Configuration.Aes.Key, sut.Configuration.Aes.IV);
+    var expected = await CreateMqttHardwareInDatabaseAsync(connection, Configuration.Aes.Key, Configuration.Aes.IV);
 
     // Act
-    await sut.Repository.DeleteAsync(expected.Id, CancellationToken.None);
+    await Repository.DeleteAsync(expected.Id, CancellationToken.None);
 
     // Assert
     var result = await connection.GetAsync(new MqttEntity(expected.Id));

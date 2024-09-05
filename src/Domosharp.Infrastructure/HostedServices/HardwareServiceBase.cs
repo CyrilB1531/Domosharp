@@ -4,6 +4,8 @@ using Domosharp.Business.Contracts.Repositories;
 
 using DotNetCore.CAP;
 
+using Microsoft.Extensions.Logging;
+
 using System.Collections.Concurrent;
 
 namespace Domosharp.Infrastructure.HostedServices;
@@ -14,16 +16,19 @@ public abstract class HardwareServiceBase : IHardwareService
   protected readonly IDeviceRepository DeviceRepository;
   protected readonly ICapPublisher CapPublisher;
   protected readonly IHardware Hardware;
+  protected readonly ILogger Logger;
 
   protected HardwareServiceBase(ICapPublisher capPublisher,
     IDeviceRepository deviceRepository,
-    IHardware hardware)
+    IHardware hardware,
+    ILogger logger)
   {
     DeviceRepository = deviceRepository;
     CapPublisher = capPublisher;
     Hardware = hardware;
     IsStarted = false;
     IsStopRequested = false;
+    Logger = logger;
   }
 
   public abstract Task ConnectAsync(CancellationToken cancellationToken);

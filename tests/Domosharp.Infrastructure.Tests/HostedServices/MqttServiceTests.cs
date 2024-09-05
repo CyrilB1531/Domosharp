@@ -9,14 +9,16 @@ using Domosharp.Infrastructure.Tests.Fakes;
 
 using DotNetCore.CAP;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
 using MQTTnet.Diagnostics;
 using MQTTnet.Extensions.ManagedClient;
-
-using Newtonsoft.Json;
 
 using NSubstitute;
 
 using System.Text;
+using System.Text.Json;
 
 namespace Domosharp.Infrastructure.Tests.HostedServices;
 
@@ -198,6 +200,7 @@ public class MqttServiceTests
     private IManagedMqttClient _clientIn;
     private IManagedMqttClient _clientOut;
     private readonly IDeviceRepository _deviceRepository;
+    private readonly ILogger _logger;
 
     private Mqtt _hardware;
 
@@ -207,6 +210,7 @@ public class MqttServiceTests
       _clientOut = Substitute.For<IManagedMqttClient>();
       _deviceRepository = Substitute.For<IDeviceRepository>();
       _capPublisher = Substitute.For<ICapPublisher>();
+      _logger = NullLogger.Instance;
 
       var sslCertificate = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "server_cert.pem");
       var faker = new Faker();
@@ -224,7 +228,7 @@ public class MqttServiceTests
         Name = faker.Random.Words(),
         Enabled = true,
         Order = faker.Random.Int(1),
-        Configuration = JsonConvert.SerializeObject(configuration),
+        Configuration = JsonSerializer.Serialize(configuration),
       };
     }
 
@@ -253,7 +257,8 @@ public class MqttServiceTests
         _deviceRepository,
         _clientIn,
         _clientOut,
-        _hardware);
+        _hardware,
+        _logger);
     }
   }
 }

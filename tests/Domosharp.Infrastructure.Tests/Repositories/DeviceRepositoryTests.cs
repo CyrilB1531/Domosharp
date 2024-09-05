@@ -141,7 +141,6 @@ public class DeviceRepositoryTests
     Assert.Equal(device.Active ? 1 : 0, e.Active);
     Assert.Equal(device.BatteryLevel, e.BatteryLevel);
     Assert.Equal(device.Favorite ? 1 : 0, e.Favorite);
-    Assert.True(e.LastUpdate > DateTime.UtcNow.AddSeconds(-5));
     Assert.Equal(device.Order, e.Order);
     Assert.Equal(device.Protected ? 1 : 0, e.Protected);
     Assert.Equal(device.SignalLevel, e.SignalLevel);
@@ -177,7 +176,6 @@ public class DeviceRepositoryTests
     Assert.Equal(device[1].Active ? 1 : 0, e.Active);
     Assert.Equal(device[1].BatteryLevel, e.BatteryLevel);
     Assert.Equal(device[1].Favorite ? 1 : 0, e.Favorite);
-    Assert.True(e.LastUpdate > DateTime.UtcNow.AddSeconds(-5));
     Assert.Equal(device[1].Order, e.Order);
     Assert.Equal(device[1].Protected ? 1 : 0, e.Protected);
     Assert.Equal(device[1].SignalLevel, e.SignalLevel);
@@ -202,7 +200,7 @@ public class DeviceRepositoryTests
     // Assert
     Assert.NotNull(result);
 
-    CheckEntity(result.MapToEntity(result.Id, result.LastUpdate), expected1, true);
+    CheckEntity(result.MapToEntity(result.Id), expected1);
   }
 
   [Fact]
@@ -225,7 +223,7 @@ public class DeviceRepositoryTests
     Assert.Single(result);
 
     var item = result.First();
-    CheckEntity(item.MapToEntity(item.Id, item.LastUpdate), expected1, true);
+    CheckEntity(item.MapToEntity(item.Id), expected1);
   }
 
   [Fact]
@@ -426,7 +424,7 @@ public class DeviceRepositoryTests
     return entity;
   }
 
-  private static void CheckEntity(DeviceEntity device, DeviceEntity expected, bool checkDeviceDate = false)
+  private static void CheckEntity(DeviceEntity device, DeviceEntity expected)
   {
     Assert.Equal(expected.Id, device.Id);
     Assert.Equal(expected.Name, device.Name);
@@ -438,10 +436,9 @@ public class DeviceRepositoryTests
     Assert.Equal(expected.SignalLevel, device.SignalLevel);
     Assert.Equal(expected.BatteryLevel, device.BatteryLevel);
     Assert.Equal(expected.SpecificParameters, device.SpecificParameters);
-    if (checkDeviceDate)
-      Assert.Equal(expected.LastUpdate, device.LastUpdate);
-    else
-      Assert.True(DateTime.UtcNow.AddSeconds(-1) < device.LastUpdate);
+    Assert.Equal(expected.Value, device.Value);
+    Assert.Equal(expected.Index, device.Index);
+    Assert.Equal(expected.LastUpdate, device.LastUpdate);
     Assert.Equal(expected.Order, device.Order);
     Assert.Equal(expected.Protected, device.Protected);
   }
@@ -490,6 +487,8 @@ public class DeviceRepositoryTests
       Order = faker.Random.Int(1),
       Protected = faker.Random.Bool(),
       Type = faker.PickRandom<DeviceType>(),
+      Index = faker.Random.Int(1, 500),
+      Value = faker.Random.Int(0, 100)
     };
   }
 }

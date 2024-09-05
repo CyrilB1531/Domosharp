@@ -78,9 +78,7 @@ public class HardwareWorker(IHardwareServiceFactory hardwareServiceFactory) : IH
     return Task.CompletedTask;
   }
 
-#pragma warning disable S2325 // Methods and properties that don't access instance data should be static
   internal void DoWork(object? obj)
-#pragma warning restore S2325 // Methods and properties that don't access instance data should be static
   {
     ArgumentNullException.ThrowIfNull(obj);
 

@@ -3,15 +3,15 @@ using Domosharp.Business.Contracts.Models;
 
 using Microsoft.Extensions.Configuration;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Domosharp.Business.Implementation.Configurations;
 
 public class DomosharpConfiguration : IDomosharpConfiguration
 {
+  private readonly static JsonSerializerOptions _jsonFileSerializerOptions = new () {  WriteIndented = true };
   public static void CheckCryptographicConfiguration(IConfigurationRoot configuration)
   {
     if (configuration["Aes:Key"] is null)
@@ -22,15 +22,14 @@ public class DomosharpConfiguration : IDomosharpConfiguration
 
       var fileName = Path.Combine(Thread.GetDomain().BaseDirectory, "appsettings.json");
       var file = File.ReadAllText(fileName);
-      var content = JObject.Parse(file);
-      var itemToAdd = new JObject
-      {
-        ["Key"] = Convert.ToBase64String(aes.Key),
-        ["IV"] = Convert.ToBase64String(aes.IV)
-      };
-      content.Add(nameof(Aes), itemToAdd);
+      var content = JsonNode.Parse(file)!.AsObject()!;
+
+      content.Add(nameof(Aes), new JsonObject([
+          new KeyValuePair<string, JsonNode?>("Key", JsonValue.Create(Convert.ToBase64String(aes.Key))),
+          new KeyValuePair<string, JsonNode?>("IV", JsonValue.Create(Convert.ToBase64String(aes.IV)))
+        ]));
       var c = File.CreateText(fileName);
-      c.Write(JsonConvert.SerializeObject(content, Formatting.Indented));
+      c.Write(JsonSerializer.Serialize(content, _jsonFileSerializerOptions));
       c.Close();
       c.Dispose();
       configuration.Reload();
