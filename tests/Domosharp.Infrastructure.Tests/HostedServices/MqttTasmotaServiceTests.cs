@@ -1,8 +1,10 @@
 ﻿using Bogus;
 
+using Domosharp.Business.Contracts.Factories;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
+using Domosharp.Infrastructure.Factories;
 using Domosharp.Infrastructure.Hardwares;
 using Domosharp.Infrastructure.HostedServices;
 using Domosharp.Infrastructure.Tests.Fakes;
@@ -15,8 +17,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using MQTTnet.Diagnostics;
 using MQTTnet.Extensions.ManagedClient;
-
-using NLog.Targets;
 
 using NSubstitute;
 
@@ -62,6 +62,53 @@ public class MqttTasmotaServiceTests
   [InlineData(RelayType.Shutter, DeviceType.Blinds, 1)]
   [InlineData(RelayType.Simple, DeviceType.LightSwitch, 2)]
   [InlineData(RelayType.Shutter, DeviceType.Blinds, 2)]
+  public async Task MqttTasmotaService_WithDevicesAlreadyPresentAndDevicePayload_CreatesCorrectDevices(RelayType relayType, DeviceType deviceType, int deviceCount)
+  {
+    // Arrange
+    var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType);
+
+    var internalClientIn = new MqttClientTest();
+    var deviceRepository = Substitute.For<IDeviceRepository>();
+    var faker = new Faker();
+    var mqttConfiguration = new MqttConfiguration()
+    {
+      SubscriptionsIn = ["Tasmota/Discovery"],
+      Address = faker.Internet.Ip(),
+      Port = faker.Internet.Port(),
+    };
+
+    var hardware = Substitute.For<IMqttHardware>();
+    hardware.Id.Returns(faker.Random.Int(1));
+    hardware.Type.Returns(HardwareType.MQTTTasmota);
+    hardware.MqttConfiguration.Returns(mqttConfiguration);
+    List<Device> devices = [new TasmotaDevice(1, MqttPayload.GetDevicesPayload(1, relayType)) { Active = true }];
+
+    deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(devices);
+    deviceRepository.CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a =>
+    {
+      var device = a.ArgAt<Device>(0);
+      Assert.Equal(deviceType, device.Type);
+      return device;
+    });
+    var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
+    await new SutBuilder()
+      .WithDeviceRepository(deviceRepository)
+      .WithClientIn(clientIn)
+      .WithMqttHardware(hardware)
+      .BuildAsync(CancellationToken.None);
+
+    // Act
+    await CreateMqttTasmotaDiscoveryConfigMessage(internalClientIn, payload);
+
+    // Assert
+    await deviceRepository.Received(deviceCount).CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+  }
+
+  [Theory]
+  [InlineData(RelayType.Simple, DeviceType.LightSwitch, 1)]
+  [InlineData(RelayType.Shutter, DeviceType.Blinds, 1)]
+  [InlineData(RelayType.Simple, DeviceType.LightSwitch, 2)]
+  [InlineData(RelayType.Shutter, DeviceType.Blinds, 2)]
   public async Task MqttTasmotaService_WithDevicePayload_UpdatesCorrectDevices(RelayType relayType, DeviceType deviceType, int deviceCount)
   {
     // Arrange
@@ -69,18 +116,17 @@ public class MqttTasmotaServiceTests
     var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType, oldPayload.FullMacAsDeviceId, oldPayload.DeviceName);
 
     var internalClientIn = new MqttClientTest();
-    var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true }];
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = true }];
     if (deviceCount == 2)
     {
       getListResult = [
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active= true,
         }
@@ -116,18 +162,17 @@ public class MqttTasmotaServiceTests
     var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType, oldPayload.FullMacAsDeviceId, oldPayload.DeviceName);
 
     var internalClientIn = new MqttClientTest();
-    var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = false }];
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = false }];
     if (deviceCount == 2)
     {
       getListResult = [
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= false,
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = false,
         }
@@ -151,6 +196,47 @@ public class MqttTasmotaServiceTests
   [InlineData(RelayType.Shutter, 1)]
   [InlineData(RelayType.Simple, 2)]
   [InlineData(RelayType.Shutter, 2)]
+  public async Task MqttTasmotaService_WithEmptyDevicePayload_DoesNotCreateDevices(RelayType relayType, int deviceCount)
+  {
+    // Arrange
+    var oldPayload = MqttPayload.GetDevicesPayload(deviceCount, relayType);
+
+    var internalClientIn = new MqttClientTest();
+
+    var deviceRepository = Substitute.For<IDeviceRepository>();
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = true }];
+    if (deviceCount == 2)
+    {
+      getListResult = [
+        new TasmotaDevice(1, oldPayload, index:1)
+        {
+          Active= true,
+        } ,
+        new TasmotaDevice(1, oldPayload, index:2)
+        {
+          Active  = true,
+        }
+      ];
+    }
+
+    deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(getListResult);
+    var clientIn = new ManagedMqttClient(internalClientIn, new MqttNetNullLogger());
+    await new SutBuilder().WithDeviceRepository(deviceRepository).WithClientIn(clientIn).BuildAsync(CancellationToken.None);
+
+
+    // Act
+    await CreateMqttTasmotaDiscoveryConfigMessage(internalClientIn);
+
+    // Assert
+    await deviceRepository.Received(0).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+    await deviceRepository.Received(0).CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+  }
+
+  [Theory]
+  [InlineData(RelayType.Simple, 1)]
+  [InlineData(RelayType.Shutter, 1)]
+  [InlineData(RelayType.Simple, 2)]
+  [InlineData(RelayType.Shutter, 2)]
   public async Task MqttTasmotaService_WithEmptySensorsPayload_DoesNotCreateDevices(RelayType relayType, int deviceCount)
   {
     // Arrange
@@ -158,18 +244,17 @@ public class MqttTasmotaServiceTests
     var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType, oldPayload.FullMacAsDeviceId, oldPayload.DeviceName);
 
     var internalClientIn = new MqttClientTest();
-    var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true }];
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = true }];
     if (deviceCount == 2)
     {
       getListResult = [
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = true,
         }
@@ -201,18 +286,17 @@ public class MqttTasmotaServiceTests
     var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType, oldPayload.FullMacAsDeviceId, oldPayload.DeviceName);
 
     var internalClientIn = new MqttClientTest();
-    var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true }];
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = true }];
     if (deviceCount == 2)
     {
       getListResult = [
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = true,
         }
@@ -241,18 +325,17 @@ public class MqttTasmotaServiceTests
     var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType, oldPayload.FullMacAsDeviceId, oldPayload.DeviceName);
 
     var internalClientIn = new MqttClientTest();
-    var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true }];
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = true }];
     if (deviceCount == 2)
     {
       getListResult = [
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = true,
         }
@@ -283,32 +366,31 @@ public class MqttTasmotaServiceTests
     var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType, oldPayload.FullMacAsDeviceId, oldPayload.DeviceName);
 
     var internalClientIn = new MqttClientTest();
-    var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
     List<Device> getListResult = [
-      new TasmotaDevice(hardware, oldPayload) { Active = true, Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds},
-      new TasmotaDevice(hardware, oldPayload) { Active = true, Type = DeviceType.Sensor }
+      new TasmotaDevice(1, oldPayload) { Active = true, Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds},
+      new TasmotaDevice(1, oldPayload) { Active = true, Type = DeviceType.Sensor }
       ];
     if (deviceCount == 2)
     {
       getListResult = [
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
           Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds
         } ,
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
           Type= DeviceType.Sensor
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = true,
           Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds
         },
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = true,
           Type= DeviceType.Sensor
@@ -339,7 +421,6 @@ public class MqttTasmotaServiceTests
     var payload = MqttPayload.GetDevicesPayload(deviceCount, relayType, oldPayload.FullMacAsDeviceId, oldPayload.DeviceName);
 
     var internalClientIn = new MqttClientTest();
-    var hardware = Substitute.For<IMqttHardware>();
 
     var deviceRepository = Substitute.For<IDeviceRepository>();
     deviceRepository.CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>())
@@ -350,17 +431,17 @@ public class MqttTasmotaServiceTests
         return device;
       });
     List<Device> getListResult = [
-      new TasmotaDevice(hardware, oldPayload) { Active = true, Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds}
+      new TasmotaDevice(1, oldPayload) { Active = true, Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds}
       ];
     if (deviceCount == 2)
     {
       getListResult = [
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
           Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = true,
           Type= relayType==RelayType.Light? DeviceType.LightSwitch : DeviceType.Blinds
@@ -390,8 +471,7 @@ public class MqttTasmotaServiceTests
 
     var internalClientIn = new MqttClientTest();
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    var hardware = Substitute.For<IMqttHardware>();
-    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true }];
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = true }];
     deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(getListResult);
     deviceRepository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a =>
     {
@@ -425,13 +505,12 @@ public class MqttTasmotaServiceTests
 
     var internalClientIn = new MqttClientTest();
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    var hardware = Substitute.For<IMqttHardware>();
     var getListResult = new List<Device>() {
-        new TasmotaDevice(hardware, oldPayload, 1)
+        new TasmotaDevice(1, oldPayload, index:1)
         {
           Active= true,
         } ,
-        new TasmotaDevice(hardware, oldPayload, 2)
+        new TasmotaDevice(1, oldPayload, index:2)
         {
           Active  = true,
         }
@@ -440,7 +519,7 @@ public class MqttTasmotaServiceTests
     deviceRepository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a =>
     {
       var device = a.ArgAt<Device>(0);
-      if (device.Name.EndsWith('1'))
+      if (device.Index == 1)
         Assert.Equal(expectedValue1, device.Value);
       else
         Assert.Equal(expectedValue2, device.Value);
@@ -457,7 +536,7 @@ public class MqttTasmotaServiceTests
     await CreateMqttTasmotaMessage(internalClientIn, "tele/" + oldPayload.Topic + "/STATE", payload);
 
     // Assert
-    await deviceRepository.Received(1).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+    await deviceRepository.Received(2).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
   }
 
   [Theory]
@@ -473,8 +552,7 @@ public class MqttTasmotaServiceTests
 
     var internalClientIn = new MqttClientTest();
     var deviceRepository = Substitute.For<IDeviceRepository>();
-    var hardware = Substitute.For<IMqttHardware>();
-    List<Device> getListResult = [new TasmotaDevice(hardware, oldPayload) { Active = true, Value = 50 }];
+    List<Device> getListResult = [new TasmotaDevice(1, oldPayload) { Active = true, Value = 50 }];
     deviceRepository.GetListAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(getListResult);
     deviceRepository.UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a =>
     {
@@ -553,6 +631,11 @@ public class MqttTasmotaServiceTests
     return CreateMqttTasmotaMessage(client, $"Tasmota/Discovery/{payload.FullMacAsDeviceId}/config", JsonSerializer.Serialize(payload, JsonExtensions.FullObjectOnDeserializing));
   }
 
+  private static Task<bool> CreateMqttTasmotaDiscoveryConfigMessage(MqttClientTest client)
+  {
+    return CreateMqttTasmotaMessage(client, $"Tasmota/Discovery/5FC8D2E484/config", string.Empty);
+  }
+
   private static Task<bool> CreateMqttTasmotaDiscoverySensorMessage(MqttClientTest client, string deviceId, string sensorMessage)
   {
     return CreateMqttTasmotaMessage(client, $"Tasmota/Discovery/{deviceId}/sensors", sensorMessage);
@@ -578,7 +661,7 @@ public class MqttTasmotaServiceTests
     private IManagedMqttClient _clientIn = Substitute.For<IManagedMqttClient>();
     private readonly IManagedMqttClient _clientOut = Substitute.For<IManagedMqttClient>();
     private readonly MqttConfiguration _mqttConfiguration;
-    private readonly IMqttHardware _hardware;
+    private IMqttHardware _hardware;
     private readonly ILogger _logger;
 
     public SutBuilder()
@@ -608,9 +691,16 @@ public class MqttTasmotaServiceTests
       return this;
     }
 
+    public SutBuilder WithMqttHardware(IMqttHardware hardware)
+    {
+      _hardware = hardware;
+      return this;
+    }
+
     public async Task<MqttTasmotaService> BuildAsync(CancellationToken cancellationToken)
     {
-      var service = new MqttTasmotaService(_capPublisher, _deviceRepository, _clientIn, _clientOut, _hardware, _logger);
+      var deviceServiceFactory = new DeviceServiceFactory(_deviceRepository);
+      var service = new MqttTasmotaService(_capPublisher, _deviceRepository, _clientIn, _clientOut, _hardware, deviceServiceFactory, _logger);
       await service.ConnectAsync(cancellationToken);
       return service;
     }

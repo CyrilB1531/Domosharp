@@ -2,7 +2,8 @@
 {
   internal record Dummy : HardwareBase
   {
-    public Dummy() {
+    public Dummy()
+    {
       Type = Business.Contracts.Models.HardwareType.Dummy;
     }
   }

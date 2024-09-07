@@ -39,7 +39,7 @@ public class CreateDeviceCommandHandlerTests
     var faker = new Faker();
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
-    hardwareRepository.GetAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
+    hardwareRepository.GetAsync(Arg.Any<int>(), true, Arg.Any<CancellationToken>())
         .Returns(a =>
         {
           var dummy = Substitute.For<IHardware>();
@@ -94,7 +94,7 @@ public class CreateDeviceCommandHandlerTests
     var deviceRepository = Substitute.For<IDeviceRepository>();
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
-    hardwareRepository.GetAsync(Arg.Any<int>(), Arg.Any<CancellationToken>())
+    hardwareRepository.GetAsync(Arg.Any<int>(), false, Arg.Any<CancellationToken>())
         .Returns(_ => (IHardware?)null);
 
     var sut = new SutBuilder()

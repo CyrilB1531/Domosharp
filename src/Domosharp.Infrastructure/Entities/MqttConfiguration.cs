@@ -12,7 +12,7 @@ public record MqttConfiguration
 
   public string? Password { get; init; }
 
-  public string[] SubscriptionsIn {  get; init; } = [];
+  public string[] SubscriptionsIn { get; init; } = [];
 
   public string[] SubscriptionsOut { get; init; } = [];
 }

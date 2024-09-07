@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.Tracing;
-
-namespace Domosharp.Infrastructure.Entities;
+﻿namespace Domosharp.Infrastructure.Entities;
 
 internal enum SwitchMode
 {

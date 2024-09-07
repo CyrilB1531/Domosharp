@@ -11,7 +11,7 @@ namespace Domosharp.Business.Implementation.Configurations;
 
 public class DomosharpConfiguration : IDomosharpConfiguration
 {
-  private readonly static JsonSerializerOptions _jsonFileSerializerOptions = new () {  WriteIndented = true };
+  private readonly static JsonSerializerOptions _jsonFileSerializerOptions = new() { WriteIndented = true };
   public static void CheckCryptographicConfiguration(IConfigurationRoot configuration)
   {
     if (configuration["Aes:Key"] is null)

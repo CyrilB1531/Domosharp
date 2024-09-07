@@ -7,6 +7,6 @@ internal record MqttTasmota : Mqtt
 {
   public MqttTasmota(MqttConfiguration configuration, string? sslCertificate) : base(configuration, sslCertificate)
   {
-    Type= HardwareType.MQTTTasmota;
+    Type = HardwareType.MQTTTasmota;
   }
 }

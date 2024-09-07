@@ -8,39 +8,6 @@ namespace Domosharp.Infrastructure.Tests.HostedServices.Data;
 
 internal static class MqttPayload
 {
-  public static TasmotaDiscoveryPayload Clone(this TasmotaDiscoveryPayload payload)
-  {
-    return new()
-    {
-      Battery = payload.Battery,
-      ButtonFlag = payload.ButtonFlag,
-      DeepSleep = payload.DeepSleep,
-      DeviceName = payload.DeviceName,
-      DiscoveryVersion = payload.DiscoveryVersion,
-      FriendlyNames = [.. payload.FriendlyNames],
-      FullMacAsDeviceId = payload.FullMacAsDeviceId,
-      FullTopic = payload.FullTopic,
-      HostName = payload.HostName,
-      IfanDevicesFlag = payload.IfanDevicesFlag,
-      IP = payload.IP,
-      LightCTRGBlinked = payload.LightCTRGBlinked,
-      LightSubType = payload.LightSubType,
-      ModuleOrTemplateName = payload.ModuleOrTemplateName,
-      OfflinePayload = payload.OfflinePayload,
-      OnlinePayload = payload.OnlinePayload,
-      Relays = [.. payload.Relays],
-      SetOptions = payload.SetOptions,
-      ShutterOptions = [.. payload.ShutterOptions],
-      ShutterTilt = [.. payload.ShutterTilt],
-      SoftwareVersion = payload.SoftwareVersion,
-      States = [.. payload.States],
-      SwitchModes = [.. payload.SwitchModes],
-      SwitchNames = [.. payload.SwitchNames],
-      Topic = payload.Topic,
-      TopicsForCommandStatAndTele = [.. payload.TopicsForCommandStatAndTele],
-      TuyaMCUFlag = payload.TuyaMCUFlag
-    };
-  }
   public static TasmotaDiscoveryPayload GetDevicesPayload(int deviceCount, RelayType type, string? mac = null, string? deviceName = null) => new Faker<TasmotaDiscoveryPayload>()
       .Rules((faker, device) =>
       {
@@ -101,7 +68,7 @@ internal static class MqttPayload
         device.FullTopic = "%prefix%/%topic%/";
         device.TopicsForCommandStatAndTele = ["cmnd", "stat", "tele"];
         device.Relays = deviceTypes;
-        device.SwitchModes = [ 
+        device.SwitchModes = [
           SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
           SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,
           SwitchMode.None, SwitchMode.None, SwitchMode.None, SwitchMode.None,

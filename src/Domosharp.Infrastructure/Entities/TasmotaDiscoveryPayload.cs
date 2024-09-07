@@ -56,7 +56,7 @@ internal record TasmotaDiscoveryPayload
   [JsonPropertyName("sho")]
   public List<ShutterOption> ShutterOptions { get; set; } = []; // bit1:INVERT bit2: LOCK  bit3: ExtraEndStop bit4: INVert WebButtons bit5: extraStopRelay
   [JsonPropertyName("sht")]
-  public List<int> ShutterTilt { get; set; } = [];
+  public List<object> ShutterTilt { get; set; } = [];
   [JsonPropertyName("ver")]
   public int DiscoveryVersion { get; set; }
 }

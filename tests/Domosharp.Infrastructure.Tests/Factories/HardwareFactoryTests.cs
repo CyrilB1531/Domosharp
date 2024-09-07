@@ -1,7 +1,6 @@
 ﻿using Bogus;
-
-using Domosharp.Business.Contracts;
 using Domosharp.Business.Contracts.Configurations;
+using Domosharp.Business.Contracts.Factories;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Common.Tests;
 using Domosharp.Infrastructure.Entities;
@@ -43,7 +42,7 @@ public class HardwareFactoryTests
   [Theory]
   [InlineData(HardwareType.MQTT, typeof(Mqtt))]
   [InlineData(HardwareType.MQTTTasmota, typeof(MqttTasmota))]
-  public async Task Create_WithEntity_ReturnsHardware(HardwareType hardwareType, Type type)
+  public async Task Create_WithEntityAndPassword_ReturnsHardware(HardwareType hardwareType, Type type)
   {
     var domosharpConfiguration = DomosharpConfigurationBuilder.Build();
 
@@ -53,6 +52,26 @@ public class HardwareFactoryTests
 
     var result = await sut.CreateAsync(
         entities.HardwareEntity,
+        true,
+        CancellationToken.None);
+    Assert.NotNull(result);
+    Assert.Equal(type, result.GetType());
+  }
+
+  [Theory]
+  [InlineData(HardwareType.MQTT, typeof(Mqtt))]
+  [InlineData(HardwareType.MQTTTasmota, typeof(MqttTasmota))]
+  public async Task Create_WithEntityWithoutPassword_ReturnsHardware(HardwareType hardwareType, Type type)
+  {
+    var domosharpConfiguration = DomosharpConfigurationBuilder.Build();
+
+    var entities = CreateHardwareEntity(hardwareType, domosharpConfiguration.Aes.Key, domosharpConfiguration.Aes.IV);
+
+    var sut = new SutBuilder(domosharpConfiguration).WithMqttRepositoryGet(_ => entities.MqttEntity).Build();
+
+    var result = await sut.CreateAsync(
+        entities.HardwareEntity,
+        false,
         CancellationToken.None);
     Assert.NotNull(result);
     Assert.Equal(type, result.GetType());
@@ -71,6 +90,7 @@ public class HardwareFactoryTests
 
     await Assert.ThrowsAsync<ArgumentException>("request", () => _ = sut.CreateAsync(hardwareEntity, CancellationToken.None));
   }
+
 
   [Theory]
   [InlineData(HardwareType.MQTT)]
@@ -125,7 +145,7 @@ public class HardwareFactoryTests
 
     var sut = new SutBuilder(domosharpConfiguration).WithMqttRepositoryGet(a => null).Build();
 
-    var error = await Assert.ThrowsAsync<ArgumentException>("entity", () => _ = sut.CreateAsync(entities.HardwareEntity, CancellationToken.None));
+    var error = await Assert.ThrowsAsync<ArgumentException>("entity", () => _ = sut.CreateAsync(entities.HardwareEntity, true, CancellationToken.None));
     Assert.Equal("Hardware configuration not found (Parameter 'entity')", error.Message);
   }
 
@@ -154,6 +174,7 @@ public class HardwareFactoryTests
 
     var result = await sut.CreateAsync(
         entities.HardwareEntity,
+        true,
         CancellationToken.None);
 
     Assert.Null(result);
@@ -172,6 +193,7 @@ public class HardwareFactoryTests
 
     var result = await sut.CreateAsync(
         entities.HardwareEntity,
+        true,
         CancellationToken.None);
 
     Assert.NotNull(result);
@@ -308,7 +330,7 @@ public class HardwareFactoryTests
     return JsonSerializer.Serialize(new MqttConfiguration()
     {
       Address = faker.Internet.IpAddress().ToString(),
-      Port = port??faker.Internet.Port(),
+      Port = port ?? faker.Internet.Port(),
       Password = faker.Internet.Password(),
       UserName = faker.Internet.UserName(),
       UseTLS = faker.Random.Bool(),

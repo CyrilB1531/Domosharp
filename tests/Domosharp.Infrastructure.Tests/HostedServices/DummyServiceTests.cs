@@ -1,4 +1,5 @@
-﻿using Domosharp.Business.Contracts.Models;
+﻿using Domosharp.Business.Contracts.Factories;
+using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.HostedServices;
 
@@ -21,38 +22,21 @@ public class DummyServiceTests
     Assert.True(true);
   }
 
-  [Fact]
-  public async Task Service_OnCreateDevice_CallsCreateDeviceRepository()
-  {
-    var deviceRepository = Substitute.For<IDeviceRepository>();
-    deviceRepository.CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>())
-      .Returns(a => a.ArgAt<Device>(0));
-    var sut = new SutBuilder().WithDeviceRepository(deviceRepository).Build();
-
-    sut.CreateDevice(this, new DeviceEventArgs(new Device()));
-
-    await deviceRepository.Received(1).CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
-  }
-
   private class SutBuilder
   {
     private readonly ICapPublisher _capPublisher;
-    private IDeviceRepository _deviceRepository;
+    private readonly IDeviceRepository _deviceRepository;
+    private readonly IDeviceServiceFactory _deviceServiceFactory;
     private readonly IHardware _hardware;
 
     public SutBuilder()
     {
       _capPublisher = Substitute.For<ICapPublisher>();
       _deviceRepository = Substitute.For<IDeviceRepository>();
+      _deviceServiceFactory = Substitute.For<IDeviceServiceFactory>();
       _hardware = Substitute.For<IHardware>();
     }
 
-    public SutBuilder WithDeviceRepository(IDeviceRepository deviceRepository)
-    {
-      _deviceRepository = deviceRepository;
-      return this;
-    }
-
-    public DummyService Build() => new(_capPublisher, _deviceRepository, _hardware);
+    public DummyService Build() => new(_capPublisher, _deviceRepository, _deviceServiceFactory, _hardware);
   }
 }

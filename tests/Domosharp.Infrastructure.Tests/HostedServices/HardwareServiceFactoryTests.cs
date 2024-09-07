@@ -12,6 +12,7 @@ using MQTTnet.Extensions.ManagedClient;
 using NSubstitute;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Domosharp.Business.Contracts.Factories;
 
 namespace Domosharp.Infrastructure.Tests.HostedServices;
 
@@ -53,6 +54,7 @@ public class HardwareServiceFactoryTests
   private class SutBuilder
   {
     private readonly IDeviceRepository _deviceRepository;
+    private readonly IDeviceServiceFactory _deviceServiceFactory;
     private readonly ICapPublisher _capPublisher;
     private readonly IManagedMqttClient _clientIn;
     private readonly IManagedMqttClient _clientOut;
@@ -64,6 +66,7 @@ public class HardwareServiceFactoryTests
       _capPublisher = Substitute.For<ICapPublisher>();
       _clientIn = Substitute.For<IManagedMqttClient>();
       _clientOut = Substitute.For<IManagedMqttClient>();
+      _deviceServiceFactory = Substitute.For<IDeviceServiceFactory>();
       _logger = new NullLogger<HardwareServiceFactory>();
     }
 
@@ -74,6 +77,7 @@ public class HardwareServiceFactoryTests
       _deviceRepository,
       _clientIn,
       _clientOut,
+      _deviceServiceFactory,
       _logger);
     }
   }

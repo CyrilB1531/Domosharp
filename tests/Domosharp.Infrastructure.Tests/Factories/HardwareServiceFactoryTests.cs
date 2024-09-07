@@ -1,4 +1,5 @@
-﻿using Domosharp.Business.Contracts.Models;
+﻿using Domosharp.Business.Contracts.Factories;
+using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
 using Domosharp.Infrastructure.Hardwares;
@@ -56,10 +57,11 @@ public class HardwareServiceFactoryTests
   {
     private readonly ICapPublisher _capPublisher = Substitute.For<ICapPublisher>();
     private readonly IDeviceRepository _deviceRepository = Substitute.For<IDeviceRepository>();
+    private readonly IDeviceServiceFactory _deviceServiceFactory = Substitute.For<IDeviceServiceFactory>();
     private readonly IManagedMqttClient _clientIn = Substitute.For<IManagedMqttClient>();
     private readonly IManagedMqttClient _clientOut = Substitute.For<IManagedMqttClient>();
-    private readonly ILogger<HardwareServiceFactory> _logger= new NullLogger<HardwareServiceFactory>();
+    private readonly ILogger<HardwareServiceFactory> _logger = new NullLogger<HardwareServiceFactory>();
 
-    public HardwareServiceFactory Build() => new(_capPublisher, _deviceRepository, _clientIn, _clientOut, _logger);
+    public HardwareServiceFactory Build() => new(_capPublisher, _deviceRepository, _clientIn, _clientOut, _deviceServiceFactory, _logger);
   }
 }

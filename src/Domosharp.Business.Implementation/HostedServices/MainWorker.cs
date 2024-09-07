@@ -74,7 +74,7 @@ public class MainWorker(IHardwareWorker hardwareWorker, IHardwareRepository hard
 
   public void DoWork()
   {
-    _hardwares = hardwareRepository?.GetListAsync().GetAwaiter().GetResult().ToList();
+    _hardwares = hardwareRepository?.GetListAsync(true).GetAwaiter().GetResult().ToList();
     if (_hardwares is null)
       return;
 

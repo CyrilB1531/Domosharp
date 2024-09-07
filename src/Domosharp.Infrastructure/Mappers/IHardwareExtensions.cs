@@ -40,7 +40,8 @@ internal static class IHardwareExtensions
       return null;
 
     string? password = null;
-    if (!string.IsNullOrEmpty(config.Password)) {
+    if (!string.IsNullOrEmpty(config.Password))
+    {
       using var memoryStream = new MemoryStream();
       Aes aes = Aes.Create();
       using var encStream = new CryptoStream(memoryStream, aes.CreateEncryptor(key, iv), CryptoStreamMode.Write);
@@ -56,8 +57,8 @@ internal static class IHardwareExtensions
       Address = config.Address,
       Password = password,
       Port = config.Port,
-      Username =config.UserName,
-      UseTLS = config.UseTLS?1:0,
+      Username = config.UserName,
+      UseTLS = config.UseTLS ? 1 : 0,
     };
   }
 }

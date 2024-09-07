@@ -1,4 +1,6 @@
-﻿using Domosharp.Business.Contracts.Models;
+﻿using Domosharp.Business.Contracts.Factories;
+using Domosharp.Business.Contracts.HostedServices;
+using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
 using Domosharp.Infrastructure.Hardwares;
@@ -21,13 +23,33 @@ internal class MqttTasmotaService(
   IManagedMqttClient clientIn,
   IManagedMqttClient clientOut,
   IMqttHardware hardware,
-  ILogger logger) : MqttService(capPublisher, deviceRepository, clientIn, clientOut, hardware, logger)
+  IDeviceServiceFactory deviceServiceFactory,
+  ILogger logger) : MqttService(capPublisher, deviceRepository, clientIn, clientOut, hardware, deviceServiceFactory, logger)
 {
-  private readonly List<TasmotaDeviceService> _deviceServices = [];
-
   private static bool DevicesAreDifferent(TasmotaDevice oldDevice, TasmotaDevice newDevice)
   {
     return oldDevice.SpecificParameters != newDevice.SpecificParameters;
+  }
+
+  public override async Task DeleteDeviceServiceAsync(Device device, CancellationToken cancellationToken = default)
+  {
+    if (DeviceServices.First(a => a.Device == device) is not TasmotaDeviceService oldDeviceService)
+      return;
+    foreach (var subscription in oldDeviceService.GetSubscriptions())
+      await ClientIn.UnsubscribeAsync(subscription);
+    await base.DeleteDeviceServiceAsync(device, cancellationToken);
+  }
+
+  public override async Task<IDeviceService?> CreateDeviceServiceAsync(Device device, CancellationToken cancellationToken = default)
+  {
+    var service = await base.CreateDeviceServiceAsync(device, cancellationToken);
+    if (service is not TasmotaDeviceService tasmotaService)
+      return null;
+
+    foreach (var subscription in tasmotaService.GetSubscriptions())
+      await ClientIn.SubscribeAsync(subscription);
+
+    return service;
   }
 
   private async Task ProcessOneSubscriptionDevice(List<TasmotaDevice?> devices, TasmotaDevice newDevice, TasmotaDiscoveryPayload discoveryPayload, CancellationToken cancellationToken)
@@ -46,28 +68,22 @@ internal class MqttTasmotaService(
         if (!hasChanges)
           return;
         await DeviceRepository.UpdateAsync(newDevice, cancellationToken);
-        _deviceServices.Remove(_deviceServices.First(a => a.Device == oldDevice));
-        _deviceServices.Add(new TasmotaDeviceService(newDevice, DeviceRepository));
+        await DeleteDeviceServiceAsync(oldDevice, cancellationToken);
+        await CreateDeviceServiceAsync(newDevice, cancellationToken);
+        return;
       }
-      else
-      {
-        // Insert
-        await DeviceRepository.CreateAsync(newDevice, cancellationToken);
-        _deviceServices.Add(new TasmotaDeviceService(newDevice, DeviceRepository));
-      }
-      return;
     }
     // Insert
     await DeviceRepository.CreateAsync(newDevice, cancellationToken);
-    _deviceServices.Add(new TasmotaDeviceService(newDevice, DeviceRepository));
+    await CreateDeviceServiceAsync(newDevice, cancellationToken);
   }
 
-  private void AddDeviceServices(List<TasmotaDevice?> devices)
+  private async Task AddDeviceServicesAsync(List<TasmotaDevice?> devices, CancellationToken cancellationToken)
   {
-    if (_deviceServices.Count == 0)
+    if (DeviceServices.Count == 0)
     {
       foreach (var device in devices.Where(a => a is not null))
-        _deviceServices.Add(new TasmotaDeviceService(device!, DeviceRepository));
+        await CreateDeviceServiceAsync(device!, cancellationToken);
     }
   }
 
@@ -76,10 +92,9 @@ internal class MqttTasmotaService(
     TasmotaDiscoveryPayload discoveryPayload;
     try
     {
-
-      discoveryPayload = JsonSerializer.Deserialize<TasmotaDiscoveryPayload>(payload, JsonExtensions.FullObjectOnDeserializing)!;
-      if (discoveryPayload is null)
+      if (string.IsNullOrEmpty(payload))
         return false;
+      discoveryPayload = JsonSerializer.Deserialize<TasmotaDiscoveryPayload>(payload, JsonExtensions.FullObjectOnDeserializing)!;
     }
     catch (Exception ex)
     {
@@ -97,7 +112,7 @@ internal class MqttTasmotaService(
 
     for (var i = 0; i < count * indexIncrementer; i += indexIncrementer)
     {
-      TasmotaDevice newDevice = new(Hardware, discoveryPayload, count > 1 ? (i + indexIncrementer) / indexIncrementer : null);
+      TasmotaDevice newDevice = new(Hardware.Id, discoveryPayload, index: count > 1 ? (i + indexIncrementer) / indexIncrementer : null) { Active = true };
       await ProcessOneSubscriptionDevice(devices, newDevice, discoveryPayload, cancellationToken);
     }
     return true;
@@ -110,27 +125,52 @@ internal class MqttTasmotaService(
 
     if (devices.Exists(a => a is not null && a.Type == DeviceType.Sensor && a.MacAddress == firstDevice.MacAddress))
       return true;
-    var newDevice = new TasmotaDevice(Hardware, JsonSerializer.Deserialize<TasmotaDiscoveryPayload>(firstDevice.SpecificParameters!, JsonExtensions.FullObjectOnDeserializing)!) { Type = DeviceType.Sensor };
+
+    var newDevice = new TasmotaDevice(Hardware.Id, JsonSerializer.Deserialize<TasmotaDiscoveryPayload>(firstDevice.SpecificParameters!, JsonExtensions.FullObjectOnDeserializing)!, DeviceType.Sensor) { Active = true };
     var json = JsonNode.Parse(payload);
     if (json is null)
       return false;
 
     var time = json["Time"]?.AsValue()?.GetValue<DateTime>();
-    if(time is not null)
+    if (time is not null)
       newDevice.LastUpdate = time.Value;
     devices.Add(newDevice);
     await DeviceRepository.CreateAsync(newDevice, cancellationToken);
-    var service = new TasmotaDeviceService(newDevice, DeviceRepository);
-    _deviceServices.Add(service);
-    await service.HandleAsync(newDevice.TelemetryTopic + "SENSOR", payload, cancellationToken);
+    if((await CreateDeviceServiceAsync(newDevice, cancellationToken)) is not TasmotaDeviceService service)
+        return false;
+
+    await service!.HandleAsync(newDevice.TelemetryTopic + "SENSOR", payload, cancellationToken);
+    return true;
+  }
+
+  private static JsonNode? GetTasmotaDiscoverySensorsTopicJson(string payload)
+  {
+    var json = JsonNode.Parse(payload);
+    if (json is null)
+      return null;
+
+    if (json["sn"] is not null)
+      json = json["sn"]!;
+    return json;
+  }
+
+  private async Task<bool> ProcessShutterResultFromDiscoverySensorTopic(JsonNode json, IEnumerable<TasmotaDevice> matchingDevices, int index, CancellationToken cancellationToken)
+  {
+    var shutterDevice = matchingDevices.FirstOrDefault(a => a.Type == DeviceType.Blinds && (a.Index == index || (a.Index is null && index == 1)));
+    if (shutterDevice is null)
+      return false;
+    var deviceService = DeviceServices.Find(a => a.Device.Id == shutterDevice.Id);
+    deviceService ??= await CreateDeviceServiceAsync(shutterDevice, cancellationToken);
+
+    await ((TasmotaDeviceService)deviceService!).HandleAsync(shutterDevice.StateTopic + "RESULT", "{\"Shutter" + index + "\":" + JsonSerializer.Serialize(json["Shutter" + index.ToString()]) + "}", cancellationToken);
     return true;
   }
 
   protected async Task<bool> ProcessTasmotaDiscoverySensorsTopicMessage(List<TasmotaDevice?> devices, IEnumerable<TasmotaDevice> matchingDevices, string payload, CancellationToken cancellationToken)
   {
-    if(string.IsNullOrEmpty(payload)) 
+    if (string.IsNullOrEmpty(payload))
       return false;
-    var json = JsonNode.Parse(payload);
+    var json = GetTasmotaDiscoverySensorsTopicJson(payload);
     if (json is null)
       return false;
 
@@ -141,15 +181,11 @@ internal class MqttTasmotaService(
     {
       if (json["Shutter" + index.ToString()] is not null)
       {
-        var shutterDevice = matchingDevices.FirstOrDefault(a=> a.Type == DeviceType.Blinds && (a.Index==index || (a.Index is null && index == 1)));
-        if(shutterDevice is null)
+        if (!await ProcessShutterResultFromDiscoverySensorTopic(json, matchingDevices, index, cancellationToken))
           return false;
-        await _deviceServices.First(a=>a.Device == shutterDevice).HandleAsync(shutterDevice.StateTopic + "RESULT", "{\"Shutter"+index+"\":"+ JsonSerializer.Serialize(json["Shutter"+index.ToString()]) + "}", cancellationToken);
       }
-      else if(index>1)
-        return true;
-      else
-        return false;
+      else if (index > 1)
+        return index > 1;
     }
     return true;
   }
@@ -163,8 +199,8 @@ internal class MqttTasmotaService(
 
     if (topic.EndsWith(SensorsTopic))
     {
-      var macAddress = topic.Replace(SensorsTopic, string.Empty).Replace("/",string.Empty);
-      return ProcessTasmotaDiscoverySensorsTopicMessage(devices, devices.Where(a => a is not null && a.Type != DeviceType.Sensor && a.MacAddress == macAddress).Select(a=> a!), payload, cancellationToken);
+      var macAddress = topic.Replace(SensorsTopic, string.Empty).Replace("/", string.Empty);
+      return ProcessTasmotaDiscoverySensorsTopicMessage(devices, devices.Where(a => a is not null && a.Type != DeviceType.Sensor && a.MacAddress == macAddress).Select(a => a!), payload, cancellationToken);
     }
     return Task.FromResult(true);
   }
@@ -172,16 +208,16 @@ internal class MqttTasmotaService(
   protected override async Task<bool> ProcessMessageReceivedAsync(string topic, string payload, CancellationToken cancellationToken = default)
   {
     var devices = (await DeviceRepository.GetListAsync(Hardware.Id, cancellationToken)).Select(a => a.MapToTasmotaDevice()).Where(a => a is not null && a.Active).ToList();
-    AddDeviceServices(devices);
+    await AddDeviceServicesAsync(devices, cancellationToken);
 
     var tasmotaDiscoveryTopic = ((IMqttHardware)Hardware).MqttConfiguration.SubscriptionsIn[0];
     if (topic.StartsWith(tasmotaDiscoveryTopic))
       return await ProcessMessageInSubscribedTopic(devices, topic.Replace(tasmotaDiscoveryTopic, string.Empty), payload, cancellationToken);
 
-    foreach (var device in _deviceServices)
-      if (await device.HandleAsync(topic, payload, cancellationToken))
-        return true;
+    var result = false;
+    foreach (var device in DeviceServices)
+      result |= await ((TasmotaDeviceService)device).HandleAsync(topic, payload, cancellationToken);
 
-    return false;
+    return result;
   }
 }

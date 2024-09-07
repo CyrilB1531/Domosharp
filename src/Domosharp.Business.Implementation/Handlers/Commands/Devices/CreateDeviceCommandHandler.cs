@@ -2,15 +2,21 @@
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 
+using DotNetCore.CAP;
+
 using MediatR;
 
 namespace Domosharp.Business.Implementation.Handlers.Commands.Devices;
 
-public class CreateDeviceCommandHandler(IDeviceRepository deviceRepository, IHardwareRepository hardwareRepository) : IRequestHandler<CreateDeviceCommand, Device?>
+public class CreateDeviceCommandHandler(
+  IDeviceRepository deviceRepository, 
+  IHardwareRepository hardwareRepository) : IRequestHandler<CreateDeviceCommand, Device?>, ICapSubscribe
 {
+  [CapSubscribe(nameof(CreateDeviceCommand))]
+
   public async Task<Device?> Handle(CreateDeviceCommand request, CancellationToken cancellationToken)
   {
-    var hardware = await hardwareRepository.GetAsync(request.HardwareId, cancellationToken);
+    var hardware = await hardwareRepository.GetAsync(request.HardwareId, false, cancellationToken);
     if (hardware is null)
       return null;
 
@@ -31,8 +37,7 @@ public class CreateDeviceCommandHandler(IDeviceRepository deviceRepository, IHar
       Name = request.Name,
       Order = request.Order,
       Protected = request.Protected,
-      Type = request.Type,
-      Hardware = hardware,
+      Type = request.Type
     };
 
     await deviceRepository.CreateAsync(device, cancellationToken);

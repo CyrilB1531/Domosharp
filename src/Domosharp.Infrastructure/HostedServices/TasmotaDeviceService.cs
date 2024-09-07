@@ -1,14 +1,27 @@
-﻿using Domosharp.Business.Contracts.Models;
+﻿using Domosharp.Business.Contracts.HostedServices;
+using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
+
+using MQTTnet.Extensions.ManagedClient;
 
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace Domosharp.Infrastructure.HostedServices;
 
-internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository deviceRepository)
+internal class TasmotaDeviceService : IMqttDeviceService
 {
+  private readonly TasmotaDevice _device;
+  private readonly IDeviceRepository _deviceRepository;
+
+  internal TasmotaDeviceService(TasmotaDevice device, IDeviceRepository deviceRepository){
+    _device = device;
+    _deviceRepository = deviceRepository;
+  }
+
+  public IEnumerable<string> GetSubscriptions() => [ _device.TelemetryTopic, _device.StateTopic ];
+
   private async Task HandleStateTopicAsync(string command, string payload, CancellationToken cancellationToken = default)
   {
     if (command != "RESULT")
@@ -16,24 +29,24 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     if (string.IsNullOrEmpty(payload))
       return;
 
-    switch (device.Type)
+    switch (_device.Type)
     {
       case DeviceType.Blinds:
         JsonNode jsonPayload = JsonNode.Parse(payload)!;
         TasmotaShutterPayload? shutter;
-        if (device.Index is null || device.Index <= 1)
+        if (_device.Index is null || _device.Index <= 1)
           shutter = jsonPayload["Shutter1"]?.Deserialize<TasmotaShutterPayload>();
         else
-          shutter = jsonPayload[$"Shutter{device.Index}"]?.Deserialize<TasmotaShutterPayload>();
+          shutter = jsonPayload[$"Shutter{_device.Index}"]?.Deserialize<TasmotaShutterPayload>();
 
-        if(shutter is null) 
+        if (shutter is null)
           return;
-        if(shutter.Position != shutter.Target)
+        if (shutter.Position != shutter.Target)
           return;
-        if(device.Value == shutter.Position) 
+        if (_device.Value == shutter.Position)
           return;
-        device.Value = shutter.Position;
-        await deviceRepository.UpdateAsync(device, cancellationToken);
+        _device.Value = shutter.Position;
+        await _deviceRepository.UpdateAsync(_device, cancellationToken);
         break;
       default:
         break;
@@ -49,12 +62,12 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     var value = node?.GetValue<string>();
     if (value is not null)
     {
-      if (value == device.States[OffState])
-        device.Value = 0;
-      else if (value == device.States[OnState])
-        device.Value = 100;
-      else if (value == device.States[ToggleState])
-        device.Value = device.Value == 0 ? 100 : 0;
+      if (value == _device.States[OffState])
+        _device.Value = 0;
+      else if (value == _device.States[OnState])
+        _device.Value = 100;
+      else if (value == _device.States[ToggleState])
+        _device.Value = _device.Value == 0 ? 100 : 0;
     }
   }
 
@@ -71,9 +84,10 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     var target = targetNode?.GetValue<int>();
     if (position is null || target is null || position != target)
       return false;
-    device.Value = position;
+    _device.Value = position;
     return true;
   }
+
   private bool SetTemperatureDeviceValue(JsonObject payload, string key)
   {
     payload.TryGetPropertyValue(key, out JsonNode? esp32Node);
@@ -85,9 +99,9 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     var temperature = temperatureNode?.GetValue<decimal>();
     if (temperature is null)
       return false;
-    if (device.Value == temperature)
+    if (_device.Value == temperature)
       return false;
-    device.Value = temperature;
+    _device.Value = temperature;
     return true;
   }
 
@@ -102,17 +116,17 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     payloadNode.TryGetPropertyValue("Time", out JsonNode? node);
     var time = node?.GetValue<DateTime>();
     if (time is not null)
-      device.LastUpdate = time.Value;
+      _device.LastUpdate = time.Value;
     else
-      device.LastUpdate = DateTime.Now;
+      _device.LastUpdate = DateTime.Now;
 
-    switch (device.Type)
+    switch (_device.Type)
     {
       case DeviceType.LightSwitch:
-        if (device.Index is null)
+        if (_device.Index is null)
           SetDeviceValue(payloadNode, "POWER");
         else
-          SetDeviceValue(payloadNode, $"POWER{device.Index}");
+          SetDeviceValue(payloadNode, $"POWER{_device.Index}");
         break;
       default:
         break;
@@ -125,8 +139,8 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     node.AsObject().TryGetPropertyValue("Signal", out var signal);
     if (signal is null)
       return;
-    device.SignalLevel = signal.GetValue<int>();
-    await deviceRepository.UpdateAsync(device, cancellationToken);
+    _device.SignalLevel = signal.GetValue<int>();
+    await _deviceRepository.UpdateAsync(_device, cancellationToken);
   }
 
   private async Task ProcessSensorTelemetryTopicAsync(string payload, CancellationToken cancellationToken)
@@ -140,17 +154,17 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
     payloadNode.TryGetPropertyValue("Time", out JsonNode? node);
     var time = node?.GetValue<DateTime>();
     if (time is not null)
-      device.LastUpdate = time.Value;
+      _device.LastUpdate = time.Value;
     else
-      device.LastUpdate = DateTime.Now;
+      _device.LastUpdate = DateTime.Now;
     bool result;
-    switch (device.Type)
+    switch (_device.Type)
     {
       case DeviceType.Blinds:
-        if (device.Index is null)
+        if (_device.Index is null)
           result = SetShutterDeviceValue(payloadNode, "Shutter1");
         else
-          result = SetShutterDeviceValue(payloadNode, $"Shutter{device.Index}");
+          result = SetShutterDeviceValue(payloadNode, $"Shutter{_device.Index}");
         break;
       case DeviceType.Sensor:
         result = SetTemperatureDeviceValue(payloadNode, "ESP32");
@@ -159,7 +173,7 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
         return;
     }
     if (result)
-      await deviceRepository.UpdateAsync(device, cancellationToken);
+      await _deviceRepository.UpdateAsync(_device, cancellationToken);
   }
 
   private async Task HandleTelemetryTopicAsync(string command, string payload, CancellationToken cancellationToken = default)
@@ -182,18 +196,18 @@ internal class TasmotaDeviceService(TasmotaDevice device, IDeviceRepository devi
 
   public async Task<bool> HandleAsync(string command, string payload, CancellationToken cancellationToken = default)
   {
-    if (command.StartsWith(device.TelemetryTopic))
+    if (command.StartsWith(_device.TelemetryTopic))
     {
-      await HandleTelemetryTopicAsync(command.Replace(device.TelemetryTopic, string.Empty), payload, cancellationToken);
+      await HandleTelemetryTopicAsync(command.Replace(_device.TelemetryTopic, string.Empty), payload, cancellationToken);
       return true;
     }
-    if (command.StartsWith(device.StateTopic))
+    if (command.StartsWith(_device.StateTopic))
     {
-      await HandleStateTopicAsync(command.Replace(device.StateTopic, string.Empty), payload, cancellationToken);
+      await HandleStateTopicAsync(command.Replace(_device.StateTopic, string.Empty), payload, cancellationToken);
       return true;
     }
     return false;
   }
 
-  public TasmotaDevice Device { get { return device; } }
+  public Device Device { get { return _device; } }
 }

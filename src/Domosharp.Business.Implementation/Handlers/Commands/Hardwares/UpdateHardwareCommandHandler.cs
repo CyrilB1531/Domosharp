@@ -4,16 +4,19 @@ using Domosharp.Business.Contracts.Repositories;
 
 using MediatR;
 
+using System.Transactions;
+
 namespace Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 public class UpdateHardwareCommandHandler(
     IHardwareRepository hardwareRepository,
+    IMqttRepository mqttRepository,
     IMainWorker mainWorker
   ) : IRequestHandler<UpdateHardwareCommand, bool>
 {
   public async Task<bool> Handle(UpdateHardwareCommand request, CancellationToken cancellationToken)
   {
-    var hardware = await hardwareRepository.GetAsync(request.Id, cancellationToken);
+    var hardware = await hardwareRepository.GetAsync(request.Id, true, cancellationToken);
     if (hardware is null)
       return false;
 
@@ -47,9 +50,15 @@ public class UpdateHardwareCommandHandler(
     if (!hasChanges)
       return false;
 
+    using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+    if (hardware.Type is Contracts.Models.HardwareType.MQTT or Contracts.Models.HardwareType.MQTTTasmota &&
+      !await mqttRepository.UpdateAsync(hardware, cancellationToken))
+      return false;
     if (!await hardwareRepository.UpdateAsync(hardware, cancellationToken))
       return false;
+    transactionScope.Complete();
     mainWorker.UpdateHardware(hardware);
+
     return true;
   }
 }

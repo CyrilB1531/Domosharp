@@ -40,17 +40,17 @@ public class MqttRepository(IDbConnection connection, IDomosharpConfiguration co
     await connection.InsertAsync(((IMqttHardware)hardware).MapToMqttEntity(DateTime.UtcNow, configuration.Aes.KeyBytes(), configuration.Aes.IVBytes()));
   }
 
-  public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+  public Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
   {
-    await connection.DeleteAsync(new MqttEntity(id));
+    return connection.DeleteAsync(new MqttEntity(id));
   }
 
-  public async Task UpdateAsync(IHardware hardware, CancellationToken cancellationToken = default)
+  public Task<bool> UpdateAsync(IHardware hardware, CancellationToken cancellationToken = default)
   {
     if (!IsMqttHardware(hardware.Type))
-      return;
+      return Task.FromResult(false);
 
-    await connection.UpdateAsync(((IMqttHardware)hardware).MapToMqttEntity(DateTime.UtcNow, configuration.Aes.KeyBytes(), configuration.Aes.IVBytes()));
+    return connection.UpdateAsync(((IMqttHardware)hardware).MapToMqttEntity(DateTime.UtcNow, configuration.Aes.KeyBytes(), configuration.Aes.IVBytes()));
   }
 
   public async Task<MqttEntity?> GetAsync(int id, CancellationToken cancellationToken = default)

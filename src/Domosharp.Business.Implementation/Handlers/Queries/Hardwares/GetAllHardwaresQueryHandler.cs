@@ -10,6 +10,6 @@ public class GetAllHardwaresQueryHandler(IHardwareRepository hardwareRepository)
 {
   public Task<IEnumerable<IHardware>> Handle(GetAllHardwaresQuery request, CancellationToken cancellationToken)
   {
-    return hardwareRepository.GetListAsync(cancellationToken);
+    return hardwareRepository.GetListAsync(false, cancellationToken);
   }
 }

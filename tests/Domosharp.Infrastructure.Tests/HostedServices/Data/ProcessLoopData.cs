@@ -1,8 +1,7 @@
 ﻿using Domosharp.Business.Contracts.Models;
 
-using NSubstitute;
-
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Domosharp.Infrastructure.Tests.HostedServices.Data;
 
@@ -10,10 +9,9 @@ public class ProcessLoopData : IEnumerable<object[]>
 {
   public IEnumerator<object[]> GetEnumerator()
   {
-    var hardaware = Substitute.For<IHardware>();
     var device = new Device
     {
-      Hardware = hardaware,
+      HardwareId = 1,
       Active = true
     };
     yield return new object[]
@@ -26,6 +24,7 @@ public class ProcessLoopData : IEnumerable<object[]>
     };
   }
 
+  [ExcludeFromCodeCoverage]
   IEnumerator IEnumerable.GetEnumerator()
   {
     throw new NotImplementedException();

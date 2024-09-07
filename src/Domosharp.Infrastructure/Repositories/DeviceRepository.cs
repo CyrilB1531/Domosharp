@@ -58,7 +58,6 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
       else
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
-
     var entity = device.MapToEntity(GetMaxId());
     await connection.InsertAsync(entity);
     return entity.MapToModel();

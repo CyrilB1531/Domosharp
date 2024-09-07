@@ -8,7 +8,7 @@ namespace Domosharp.Infrastructure.Mappers
   internal static class TasmotaDeviceMapper
   {
     private static TasmotaDevice GetTasmotaDevice(Device device, TasmotaDiscoveryPayload payload) =>
-      new(device.Hardware, payload)
+      new(device.HardwareId, payload, device.Type)
       {
         BatteryLevel = device.BatteryLevel,
         Favorite = device.Favorite,
@@ -16,7 +16,6 @@ namespace Domosharp.Infrastructure.Mappers
         LastUpdate = device.LastUpdate,
         Protected = device.Protected,
         SignalLevel = device.SignalLevel,
-        Type = device.Type,
         Active = device.Active,
         SpecificParameters = device.SpecificParameters,
         Name = device.Name,

@@ -1,4 +1,5 @@
-﻿using Domosharp.Business.Contracts.HostedServices;
+﻿using Domosharp.Business.Contracts.Factories;
+using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Hardwares;
@@ -16,15 +17,15 @@ public class HardwareServiceFactory(
     IDeviceRepository deviceRepository,
     IManagedMqttClient clientIn,
     IManagedMqttClient clientOut,
+    IDeviceServiceFactory deviceServiceFactory,
     ILogger<HardwareServiceFactory> logger) : IHardwareServiceFactory
 {
   public IHardwareService CreateFromHardware(IHardware hardware)
   {
     return hardware.Type switch
     {
-      HardwareType.MQTTTasmota => new MqttTasmotaService(capPublisher, deviceRepository, clientIn, clientOut, (MqttTasmota)hardware, logger),
-      HardwareType.MQTT => new MqttService(capPublisher, deviceRepository, clientIn, clientOut, (IMqttHardware)hardware, logger),
-      HardwareType.Dummy => new DummyService(capPublisher, deviceRepository, hardware),
+      HardwareType.MQTTTasmota => new MqttTasmotaService(capPublisher, deviceRepository, clientIn, clientOut, (MqttTasmota)hardware, deviceServiceFactory, logger),      HardwareType.MQTT => new MqttService(capPublisher, deviceRepository, clientIn, clientOut, (IMqttHardware)hardware, deviceServiceFactory, logger),
+      HardwareType.Dummy => new DummyService(capPublisher, deviceRepository, deviceServiceFactory, hardware),
       _ => throw new NotImplementedException(),
     };
   }

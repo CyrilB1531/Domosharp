@@ -22,22 +22,23 @@ public static class HardwareHelper
     return hardware;
   }
   public static IHardware GetFakeHardware(
-    int id, 
-    string name, 
-    bool enabled, 
-    int order, 
-    string? configuration, 
-    LogLevel logLevel, 
+    int id,
+    string name,
+    bool enabled,
+    int order,
+    string? configuration,
+    LogLevel logLevel,
     HardwareType type)
   {
-    return new Dummy(){
-    Id = id,
-    Name = name,
-    Enabled = enabled,
-    Order = order,
-    Configuration = configuration,
-    LogLevel = logLevel,
-    Type = type
+    return new Dummy()
+    {
+      Id = id,
+      Name = name,
+      Enabled = enabled,
+      Order = order,
+      Configuration = configuration,
+      LogLevel = logLevel,
+      Type = type
     };
   }
 
@@ -53,15 +54,16 @@ public static class HardwareHelper
   }
   public static IHardware GetFakeHardware(HardwareEntity entity)
   {
-    return new Dummy(){
-    Id = entity.Id,
-    Name = entity.Name,
-    Enabled = entity.Enabled != 0,
-    Order = entity.Order,
-    Configuration = entity.Configuration,
-    LogLevel = (LogLevel)entity.LogLevel,
-    Type = (HardwareType)entity.Type,
-    LastUpdate = entity.LastUpdate
+    return new Dummy()
+    {
+      Id = entity.Id,
+      Name = entity.Name,
+      Enabled = entity.Enabled != 0,
+      Order = entity.Order,
+      Configuration = entity.Configuration,
+      LogLevel = (LogLevel)entity.LogLevel,
+      Type = (HardwareType)entity.Type,
+      LastUpdate = entity.LastUpdate
     };
   }
 

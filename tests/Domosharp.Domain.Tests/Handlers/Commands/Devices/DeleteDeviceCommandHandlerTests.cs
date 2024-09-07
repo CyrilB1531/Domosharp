@@ -32,7 +32,7 @@ public class DeleteDeviceCommandHandlerTests
   }
 
   [Fact]
-  public async Task Delete_WithUnknowNDevice_DoesNotCallsRepositoryAndReturnsFalse()
+  public async Task Delete_WithUnknownDevice_DoesNotCallsRepositoryAndReturnsFalse()
   {
     // Arrange
     var deviceRepository = Substitute.For<IDeviceRepository>();

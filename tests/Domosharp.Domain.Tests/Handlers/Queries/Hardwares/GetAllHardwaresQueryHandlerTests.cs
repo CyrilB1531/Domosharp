@@ -20,7 +20,7 @@ public class GetAllHardwaresQueryHandlerTests
     var command = new GetAllHardwaresQuery();
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
-    hardwareRepository.GetListAsync(Arg.Any<CancellationToken>())
+    hardwareRepository.GetListAsync(false, Arg.Any<CancellationToken>())
         .Returns(a => [ HardwareHelper.GetFakeHardware(
                faker.Random.Int(1),
                faker.Random.Words(),
@@ -37,7 +37,7 @@ public class GetAllHardwaresQueryHandlerTests
     var result = await sut.Handle(command, CancellationToken.None);
 
     // Assert
-    await hardwareRepository.Received(1).GetListAsync(Arg.Any<CancellationToken>());
+    await hardwareRepository.Received(1).GetListAsync(false, Arg.Any<CancellationToken>());
     Assert.Single(result);
   }
 
@@ -48,7 +48,7 @@ public class GetAllHardwaresQueryHandlerTests
     var command = new GetAllHardwaresQuery();
 
     var hardwareRepository = Substitute.For<IHardwareRepository>();
-    hardwareRepository.GetListAsync(Arg.Any<CancellationToken>())
+    hardwareRepository.GetListAsync(true, Arg.Any<CancellationToken>())
         .Returns(a => []);
 
     var sut = new SutBuilder()
@@ -59,7 +59,7 @@ public class GetAllHardwaresQueryHandlerTests
     var result = await sut.Handle(command, CancellationToken.None);
 
     // Assert
-    await hardwareRepository.Received(1).GetListAsync(Arg.Any<CancellationToken>());
+    await hardwareRepository.Received(1).GetListAsync(false, Arg.Any<CancellationToken>());
     Assert.Empty(result);
   }
 
