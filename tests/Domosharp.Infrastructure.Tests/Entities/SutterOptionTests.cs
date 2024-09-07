@@ -1,13 +1,11 @@
 ﻿using Domosharp.Infrastructure.Entities;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Domosharp.Infrastructure.Tests.Entities;
 
 public class ShutterOptionTests
 {
   [Theory]
-  [InlineData(0, false, false, false,false,false)]
+  [InlineData(0, false, false, false, false, false)]
   [InlineData(1, true, false, false, false, false)]
   [InlineData(2, false, true, false, false, false)]
   [InlineData(3, true, true, false, false, false)]

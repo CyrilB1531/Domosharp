@@ -1,5 +1,6 @@
 ﻿using Bogus;
 
+using Domosharp.Business.Contracts.Factories;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Common.Tests;
@@ -163,60 +164,6 @@ public class HardwareBaseServiceTests
   }
 
   [Fact]
-  public async Task CreateDevice_CallsDeviceRepository()
-  {
-    // Arrange
-    var hardware = HardwareHelper.GetFakeHardware(true);
-
-    var device = new Device()
-    {
-      Hardware = hardware,
-      Id = 22
-    };
-
-    var deviceRepository = Substitute.For<IDeviceRepository>();
-    deviceRepository.CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns(a => a.ArgAt<Device>(0));
-
-    var sut = new SutBuilder()
-        .WithDeviceRepository(deviceRepository)
-        .WithHardware(hardware)
-        .Build();
-
-    // Act
-    sut.CreateDevice(null, new DeviceEventArgs(device));
-
-    // Assert
-    await deviceRepository.Received(1).CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
-    Assert.Equal(22, device.Id);
-  }
-
-  [Fact]
-  public async Task CreateDevice_WithRepositoryFailure_DoNothing()
-  {
-    // Arrange
-    var deviceRepository = Substitute.For<IDeviceRepository>();
-    deviceRepository.CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>()).Returns((Device?)null);
-
-    var hardware = HardwareHelper.GetFakeHardware(true);
-    var sut = new SutBuilder()
-        .WithDeviceRepository(deviceRepository)
-        .WithHardware(hardware)
-        .Build();
-
-    var device = new Device()
-    {
-      Hardware = hardware
-    };
-
-    // Act
-    sut.CreateDevice(null, new DeviceEventArgs(device));
-
-    // Assert
-    await deviceRepository.Received(1).CreateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
-    Assert.Equal(0, device.Id);
-  }
-
-  [Fact]
   public async Task UpdateDevice_CallsRepository()
   {
     // Arrange
@@ -232,7 +179,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device()
     {
-      Hardware = hardware
+      HardwareId = 1,
     };
 
     // Act
@@ -257,7 +204,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device()
     {
-      Hardware = hardware
+      HardwareId = 1,
     };
 
     // Act
@@ -281,7 +228,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device
     {
-      Hardware = hardware,
+      HardwareId = 1,
       Active = true
     };
     var command = faker.Random.Word();
@@ -308,7 +255,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device
     {
-      Hardware = hardware,
+      HardwareId = 1,
       Active = true
     };
 
@@ -337,7 +284,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device
     {
-      Hardware = hardware
+      HardwareId = 1,
     };
 
     var command = faker.Random.Word();
@@ -364,7 +311,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device
     {
-      Hardware = hardware,
+      HardwareId = 1,
       Active = true
     };
     var value = faker.Random.Int(0, 100);
@@ -390,7 +337,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device
     {
-      Hardware = hardware
+      HardwareId = 1,
     };
 
     var value = faker.Random.Int(0, 100);
@@ -416,7 +363,7 @@ public class HardwareBaseServiceTests
 
     var device = new Device
     {
-      Hardware = hardware,
+      HardwareId = 1,
       Active = false
     };
 
@@ -434,10 +381,11 @@ public class HardwareBaseServiceTests
   public async Task ProcessLoop_SendsMessages(IMessage message)
   {
     // Arrange
-    Assert.NotNull(message.Device.Hardware);
+    var hardware = Substitute.For<IHardware>();
+    hardware.Id.Returns(1);
 
     var sut = new SutBuilder()
-        .WithHardware(message.Device.Hardware)
+        .WithHardware(hardware)
         .Build();
 
     sut.DequeueMessageValue = message;
@@ -458,7 +406,7 @@ public class HardwareBaseServiceTests
       Assert.Equal(0, sut.SendValueCount);
       Assert.Equal(1, sut.UpdateValueCount);
     }
-    message.Device.Hardware.ClearReceivedCalls();
+    hardware.ClearReceivedCalls();
   }
 
   [Fact(Timeout = 300)]
@@ -503,6 +451,7 @@ public class HardwareBaseServiceTests
   {
     private IHardware _hardware;
     private IDeviceRepository _deviceRepository;
+    private readonly IDeviceServiceFactory _deviceServiceFactory;
     private ICapPublisher _capPublisher;
 
     public SutBuilder()
@@ -510,6 +459,7 @@ public class HardwareBaseServiceTests
       _hardware = Substitute.For<IHardware>();
       _deviceRepository = Substitute.For<IDeviceRepository>();
       _capPublisher = Substitute.For<ICapPublisher>();
+      _deviceServiceFactory = Substitute.For<IDeviceServiceFactory>();
     }
 
     public SutBuilder WithCapPublisher(ICapPublisher capPublisher)
@@ -532,7 +482,7 @@ public class HardwareBaseServiceTests
 
     public HardwareBaseServiceSutTest Build()
     {
-      return new HardwareBaseServiceSutTest(_capPublisher, _deviceRepository, _hardware);
+      return new HardwareBaseServiceSutTest(_capPublisher, _deviceRepository, _deviceServiceFactory, _hardware);
     }
   }
 }

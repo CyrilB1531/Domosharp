@@ -67,9 +67,8 @@ public class DeviceControllerTests
   {
     // Arrange
     var mediator = Substitute.For<IMediator>();
-    mediator
-        .Send(Arg.Any<GetAllDevicesQuery>(), Arg.Any<CancellationToken>())
-        .Returns(_ => []);
+    mediator.Send(Arg.Any<CreateDeviceCommand>(), Arg.Any<CancellationToken>())
+        .Returns(a => new Device());
 
     var sut = new SutBuilder().WithMediator(mediator).Build();
     var request = new CreateDeviceRequest()
@@ -100,8 +99,8 @@ public class DeviceControllerTests
     // Arrange
     var mediator = Substitute.For<IMediator>();
     mediator
-        .Send(Arg.Any<GetAllDevicesQuery>(), Arg.Any<CancellationToken>())
-        .Returns(_ => []);
+        .Send(Arg.Any<UpdateDeviceCommand>(), Arg.Any<CancellationToken>())
+        .Returns(_ => true);
 
     var sut = new SutBuilder().WithMediator(mediator).Build();
     var request = new UpdateDeviceRequest
@@ -118,10 +117,42 @@ public class DeviceControllerTests
     };
 
     // Act
-    await sut.UpdateAsync(request, 1, CancellationToken.None);
+    var result = await sut.UpdateAsync(request, 1, CancellationToken.None);
 
     // Assert
     await mediator.Received(1).Send(Arg.Any<UpdateDeviceCommand>(), Arg.Any<CancellationToken>());
+    Assert.IsType<OkResult>(result);
+  }
+
+  [Fact]
+  public async Task Update_ReturnsBadRequest()
+  {
+    // Arrange
+    var mediator = Substitute.For<IMediator>();
+    mediator
+        .Send(Arg.Any<UpdateDeviceCommand>(), Arg.Any<CancellationToken>())
+        .Returns(_ => false);
+
+    var sut = new SutBuilder().WithMediator(mediator).Build();
+    var request = new UpdateDeviceRequest
+    {
+      Active = true,
+      BatteryLevel = 1,
+      SignalLevel = -1,
+      SpecificParameters = "Params",
+      Favorite = true,
+      Name = "Device",
+      Order = 1,
+      Protected = false,
+      Type = DeviceType.LightSwitch,
+    };
+
+    // Act
+    var result = await sut.UpdateAsync(request, 1, CancellationToken.None);
+
+    // Assert
+    await mediator.Received(1).Send(Arg.Any<UpdateDeviceCommand>(), Arg.Any<CancellationToken>());
+    Assert.IsType<BadRequestResult>(result);
   }
 
   [Fact]
@@ -130,16 +161,36 @@ public class DeviceControllerTests
     // Arrange
     var mediator = Substitute.For<IMediator>();
     mediator
-        .Send(Arg.Any<GetAllDevicesQuery>(), Arg.Any<CancellationToken>())
-        .Returns(_ => []);
+        .Send(Arg.Any<DeleteDeviceCommand>(), Arg.Any<CancellationToken>())
+        .Returns(_ => true);
 
     var sut = new SutBuilder().WithMediator(mediator).Build();
 
     // Act
-    await sut.DeleteAsync(1, CancellationToken.None);
+    var result = await sut.DeleteAsync(1, CancellationToken.None);
 
     // Assert
     await mediator.Received(1).Send(Arg.Any<DeleteDeviceCommand>(), Arg.Any<CancellationToken>());
+    Assert.IsType<OkResult>(result);
+  }
+
+  [Fact]
+  public async Task Delete_ReturnsBadRequest()
+  {
+    // Arrange
+    var mediator = Substitute.For<IMediator>();
+    mediator
+        .Send(Arg.Any<DeleteDeviceCommand>(), Arg.Any<CancellationToken>())
+        .Returns(_ => false);
+
+    var sut = new SutBuilder().WithMediator(mediator).Build();
+
+    // Act
+    var result = await sut.DeleteAsync(1, CancellationToken.None);
+
+    // Assert
+    await mediator.Received(1).Send(Arg.Any<DeleteDeviceCommand>(), Arg.Any<CancellationToken>());
+    Assert.IsType<BadRequestResult>(result);
   }
 
   public class SutBuilder

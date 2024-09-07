@@ -32,7 +32,7 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
     cmd.ExecuteNonQuery();
   }
 
-  private int GetMaxId()
+  public int GetMaxId()
   {
     var command = connection.CreateCommand();
     command.CommandText = "SELECT MAX(ID) + 1 FROM [Hardware]";
@@ -77,22 +77,22 @@ CONSTRAINT Hardware_PK PRIMARY KEY (Id));";
     return await connection.UpdateAsync(hardware.MapToEntity(hardware.Id, DateTime.UtcNow));
   }
 
-  public async Task<IHardware?> GetAsync(int hardwareId, CancellationToken cancellationToken = default)
+  public async Task<IHardware?> GetAsync(int hardwareId, bool withPassword, CancellationToken cancellationToken = default)
   {
     var entity = await connection.GetAsync(new HardwareEntity(hardwareId));
     if (entity is null)
       return null;
 
-    return await hardwareFactory.CreateAsync(entity, cancellationToken);
+    return await hardwareFactory.CreateAsync(entity, withPassword, cancellationToken);
   }
 
-  public async Task<IEnumerable<IHardware>> GetListAsync(CancellationToken cancellationToken = default)
+  public async Task<IEnumerable<IHardware>> GetListAsync(bool withPassword, CancellationToken cancellationToken = default)
   {
     var entities = await connection.FindAsync<HardwareEntity>(statement => statement.WithAlias("Hardware"));
     var result = new List<IHardware>();
     foreach (var entity in entities)
     {
-      var hardwareEntity = await hardwareFactory.CreateAsync(entity, cancellationToken);
+      var hardwareEntity = await hardwareFactory.CreateAsync(entity, withPassword, cancellationToken);
       if (hardwareEntity is not null)
         result.Add(hardwareEntity);
     }

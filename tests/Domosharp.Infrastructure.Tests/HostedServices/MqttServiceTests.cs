@@ -1,5 +1,6 @@
 ﻿using Bogus;
 
+using Domosharp.Business.Contracts.Factories;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Entities;
@@ -74,15 +75,16 @@ public class MqttServiceTests
       Port = 1883,
       SubscriptionsOut = ["Subscription"]
     };
-    var hardware = new Mqtt(configuration, null){
+    var hardware = new Mqtt(configuration, null)
+    {
       Id = 1,
-      Name= "Test",
-      Enabled= true, 
-      Order =1,
+      Name = "Test",
+      Enabled = true,
+      Order = 1,
     };
-    var device = new Device { 
-      DeviceId = DeviceId, 
-      Hardware = hardware, 
+    var device = new Device
+    {
+      DeviceId = DeviceId,
       HardwareId = 1,
       Value = 0
     };
@@ -126,7 +128,12 @@ public class MqttServiceTests
       Enabled = true,
       Order = 1
     };
-    var device = new Device { DeviceId = DeviceId, Value = 0, Hardware = hardware, HardwareId = 1 };
+    var device = new Device
+    {
+      DeviceId = DeviceId,
+      Value = 0,
+      HardwareId = 1
+    };
 
     var sut = new SutBuilder()
         .WithClientIn(clientIn)
@@ -171,7 +178,6 @@ public class MqttServiceTests
     {
       DeviceId = DeviceId,
       Value = 0,
-      Hardware = hardware,
       HardwareId = 1
     };
 
@@ -200,6 +206,7 @@ public class MqttServiceTests
     private IManagedMqttClient _clientIn;
     private IManagedMqttClient _clientOut;
     private readonly IDeviceRepository _deviceRepository;
+    private readonly IDeviceServiceFactory _deviceServiceFactory;
     private readonly ILogger _logger;
 
     private Mqtt _hardware;
@@ -209,6 +216,7 @@ public class MqttServiceTests
       _clientIn = Substitute.For<IManagedMqttClient>();
       _clientOut = Substitute.For<IManagedMqttClient>();
       _deviceRepository = Substitute.For<IDeviceRepository>();
+      _deviceServiceFactory = Substitute.For<IDeviceServiceFactory>();
       _capPublisher = Substitute.For<ICapPublisher>();
       _logger = NullLogger.Instance;
 
@@ -258,6 +266,7 @@ public class MqttServiceTests
         _clientIn,
         _clientOut,
         _hardware,
+        _deviceServiceFactory,
         _logger);
     }
   }

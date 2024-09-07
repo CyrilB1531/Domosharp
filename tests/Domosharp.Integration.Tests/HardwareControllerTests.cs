@@ -11,6 +11,7 @@ public class HardwareControllerTests
   [Trait("Category", "Integration")]
   public async Task GetAllHardwares_ReturnsEmptyArray()
   {
+    Environment.SetEnvironmentVariable("ConnectionStrings:sql", "Data Source=Test;Mode=Memory;Cache=Shared");
     // Arrange
     var server = new DomosharpWebApplication();
     var client = server.CreateClient();

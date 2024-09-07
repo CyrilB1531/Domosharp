@@ -1,12 +1,6 @@
 ﻿using Domosharp.Business.Contracts.Models;
 using Domosharp.Infrastructure.Mappers;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Domosharp.Infrastructure.Tests.Mappers;
 
 public class TasmotaDeviceMapperTests

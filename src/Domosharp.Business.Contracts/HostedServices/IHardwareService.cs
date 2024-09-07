@@ -22,8 +22,12 @@ public interface IHardwareService
 
   bool IsRestartRequested { get; set; }
 
-  void CreateDevice(object? sender, DeviceEventArgs deviceEventArgs);
+  Task<Device?> CreateDeviceAsync(Device device, CancellationToken cancellationToken = default);
+
   void UpdateDevice(object? sender, DeviceEventArgs deviceEventArgs);
+
+  Task<IDeviceService?> CreateDeviceServiceAsync(Device device, CancellationToken cancellationToken = default);
+  Task DeleteDeviceServiceAsync(Device device, CancellationToken cancellationToken = default);
 
   void Stop();
 

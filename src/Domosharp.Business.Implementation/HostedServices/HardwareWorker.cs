@@ -1,5 +1,6 @@
 ﻿using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
+using Domosharp.Business.Contracts.Repositories;
 
 using System.Runtime.CompilerServices;
 
@@ -9,7 +10,7 @@ using MessageType = Domosharp.Business.Contracts.Models.MessageType;
 [assembly: InternalsVisibleTo("Domosharp.Domain.Tests")]
 namespace Domosharp.Business.Implementation.HostedServices;
 
-public class HardwareWorker(IHardwareServiceFactory hardwareServiceFactory) : IHardwareWorker
+public class HardwareWorker(IHardwareServiceFactory hardwareServiceFactory, IHardwareRepository hardwareRepository) : IHardwareWorker
 {
   private readonly List<Thread> _threads = [];
   private readonly Dictionary<string, IHardwareService> _services = [];
@@ -38,19 +39,16 @@ public class HardwareWorker(IHardwareServiceFactory hardwareServiceFactory) : IH
     return Task.CompletedTask;
   }
 
-  public Task SendValueAsync(Device device, string command, int? value, CancellationToken cancellationToken = default)
+  public async Task SendValueAsync(Device device, string command, int? value, CancellationToken cancellationToken = default)
   {
-    if (device.Hardware is null)
-      throw new ArgumentException("Hardware not found", nameof(device));
+    var hardware = await hardwareRepository.GetAsync(device.HardwareId, false, cancellationToken) ?? throw new ArgumentException("Hardware not found", nameof(device));
+    if (!hardware.Enabled || !device.Active)
+      return;
 
-    if (!device.Hardware.Enabled || !device.Active)
-      return Task.CompletedTask;
-
-    if (!_services.TryGetValue(device.Hardware.Name, out var queue))
-      return Task.CompletedTask;
+    if (!_services.TryGetValue(hardware.Name, out var queue))
+      return;
 
     queue.EnqueueMessage(new Message(MessageType.SendValue, device, command, value));
-    return Task.CompletedTask;
   }
 
   public Task StopAsync(CancellationToken cancellationToken = default)
@@ -64,21 +62,19 @@ public class HardwareWorker(IHardwareServiceFactory hardwareServiceFactory) : IH
     return Task.CompletedTask;
   }
 
-  public Task UpdateValueAsync(Device device, int? value, CancellationToken cancellationToken = default)
+  public async Task UpdateValueAsync(Device device, int? value, CancellationToken cancellationToken = default)
   {
-    if (device.Hardware is null)
-      throw new ArgumentException("Hardware not found", nameof(device));
-    if (!device.Hardware.Enabled || !device.Active)
-      return Task.CompletedTask;
+    var hardware = await hardwareRepository.GetAsync(device.HardwareId, false, cancellationToken) ?? throw new ArgumentException("Hardware not found", nameof(device));
+    if (!hardware.Enabled || !device.Active)
+      return;
 
-    if (!_services.TryGetValue(device.Hardware.Name, out var queue))
-      return Task.CompletedTask;
+    if (!_services.TryGetValue(hardware.Name, out var queue))
+      return;
 
     queue.EnqueueMessage(new Message(MessageType.UpdateValue, device, string.Empty, value));
-    return Task.CompletedTask;
   }
 
-  internal void DoWork(object? obj)
+  internal static void DoWork(object? obj)
   {
     ArgumentNullException.ThrowIfNull(obj);
 

@@ -1,6 +1,4 @@
-﻿using Domosharp.Api;
-
-using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Domosharp.Integration.Tests;
 

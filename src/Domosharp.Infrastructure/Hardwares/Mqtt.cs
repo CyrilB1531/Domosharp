@@ -7,7 +7,8 @@ internal record Mqtt : HardwareBase, IMqttHardware
 {
   private MqttConfiguration _mqttConfiguration;
   private string? _sslCertificate;
-  public Mqtt(MqttConfiguration configuration, string? sslCertificate) { 
+  public Mqtt(MqttConfiguration configuration, string? sslCertificate)
+  {
     _mqttConfiguration = configuration;
     _sslCertificate = sslCertificate;
     Type = HardwareType.MQTT;

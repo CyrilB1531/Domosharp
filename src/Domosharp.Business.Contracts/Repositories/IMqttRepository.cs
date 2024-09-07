@@ -6,8 +6,8 @@ namespace Domosharp.Business.Contracts.Repositories
   {
     Task CreateAsync(IHardware hardware, CancellationToken cancellationToken = default);
 
-    Task DeleteAsync(int id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 
-    Task UpdateAsync(IHardware hardware, CancellationToken cancellationToken = default);
+    Task<bool> UpdateAsync(IHardware hardware, CancellationToken cancellationToken = default);
   }
 }

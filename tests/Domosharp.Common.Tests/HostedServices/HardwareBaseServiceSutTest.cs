@@ -1,4 +1,5 @@
-﻿using Domosharp.Business.Contracts.Models;
+﻿using Domosharp.Business.Contracts.Factories;
+using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.HostedServices;
 
@@ -11,7 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Domosharp.Common.Tests.HostedServices;
 
 [ExcludeFromCodeCoverage]
-public class HardwareBaseServiceSutTest(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware, NullLogger.Instance)
+public class HardwareBaseServiceSutTest(ICapPublisher capPublisher, IDeviceRepository deviceRepository, IDeviceServiceFactory deviceServiceFactory, IHardware hardware) : HardwareServiceBase(capPublisher, deviceRepository, hardware, deviceServiceFactory, NullLogger.Instance)
 {
   public override Task ConnectAsync(CancellationToken cancellationToken)
   {

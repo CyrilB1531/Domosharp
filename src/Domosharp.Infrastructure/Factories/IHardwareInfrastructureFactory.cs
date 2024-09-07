@@ -5,5 +5,5 @@ namespace Domosharp.Infrastructure.Factories;
 
 public interface IHardwareInfrastructureFactory
 {
-  Task<IHardware?> CreateAsync(HardwareEntity entity, CancellationToken cancellationToken);
+  Task<IHardware?> CreateAsync(HardwareEntity entity, bool withPassword, CancellationToken cancellationToken = default);
 }

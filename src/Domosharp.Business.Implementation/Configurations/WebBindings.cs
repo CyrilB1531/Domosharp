@@ -4,8 +4,8 @@ namespace Domosharp.Business.Implementation.Configurations
 {
   public record WebBindings : IWebBindings
   {
-    public string Address {  get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
 
-    public int Port {  get; set; }
+    public int Port { get; set; }
   }
 }

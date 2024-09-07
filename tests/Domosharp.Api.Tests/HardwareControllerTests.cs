@@ -24,7 +24,7 @@ public class HardwareControllerTests
     // Arrange
     var faker = new Faker();
     var expected = new List<IHardware>{
-      HardwareHelper.GetFakeHardware(faker.Random.Int(1), 
+      HardwareHelper.GetFakeHardware(faker.Random.Int(1),
         faker.Random.String2(10),true, 1, faker.Random.String2(10), LogLevel.None)
         };
 

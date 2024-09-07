@@ -1,7 +1,8 @@
-﻿using Domosharp.Business.Contracts;
-using Domosharp.Business.Contracts.Configurations;
+﻿using Domosharp.Business.Contracts.Configurations;
+using Domosharp.Business.Contracts.Factories;
 using Domosharp.Infrastructure.Entities;
 using Domosharp.Infrastructure.Hardwares;
+using Domosharp.Infrastructure.Mappers;
 using Domosharp.Infrastructure.Repositories;
 
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ internal class HardwareFactory(
 
   private static string? GetMqttPassword(string? password, IDomosharpConfiguration configuration)
   {
-    if(string.IsNullOrWhiteSpace(password)) 
+    if (string.IsNullOrWhiteSpace(password))
       return null;
 
     using var memoryStream = new MemoryStream();
@@ -30,20 +31,21 @@ internal class HardwareFactory(
     var bytes = Convert.FromBase64String(password);
     using var decStream = new CryptoStream(memoryStream, aes.CreateDecryptor(configuration.Aes.KeyBytes(), configuration.Aes.IVBytes()), CryptoStreamMode.Write);
     decStream.Write(bytes, 0, bytes.Length);
+    decStream.Close();
     return Encoding.UTF8.GetString(memoryStream.ToArray());
   }
 
   private static MqttConfiguration GetMqttConfiguration(string? request)
   {
-    if(string.IsNullOrEmpty(request))
-        throw new ArgumentException(HardwareConfigurationNotFound, nameof(request));
+    if (string.IsNullOrEmpty(request))
+      throw new ArgumentException(HardwareConfigurationNotFound, nameof(request));
     var mqttConfiguration = JsonSerializer.Deserialize<MqttConfiguration>(request) ?? throw new ArgumentException("Hardware configuration not found", nameof(request));
     if (mqttConfiguration.Port > 65535 || mqttConfiguration.Port <= 0)
       throw new ArgumentOutOfRangeException(nameof(request), PortOutOfRange);
     return mqttConfiguration;
   }
 
-  public async Task<Business.Contracts.Models.IHardware?> CreateAsync(HardwareEntity entity, CancellationToken cancellationToken)
+  public async Task<Business.Contracts.Models.IHardware?> CreateAsync(HardwareEntity entity, bool withPassword, CancellationToken cancellationToken = default)
   {
     HardwareBase? hardwareBase;
     MqttEntity? mqttEntity;
@@ -53,8 +55,6 @@ internal class HardwareFactory(
         mqttEntity = await mqttRepository.GetAsync(entity.Id, cancellationToken);
         if (mqttEntity is null)
           throw new ArgumentException(HardwareConfigurationNotFound, nameof(entity));
-        if (mqttEntity.Port > 65535 || mqttEntity.Port <= 0)
-          throw new ArgumentOutOfRangeException(nameof(entity), PortOutOfRange);
 
         var mqttConfiguration = new MqttConfiguration()
         {
@@ -66,6 +66,7 @@ internal class HardwareFactory(
           UserName = mqttEntity.Username,
           UseTLS = mqttEntity.UseTLS == 1
         };
+
         hardwareBase = new Mqtt(mqttConfiguration, configuration.SslCertificate)
         {
           Id = entity.Id,
@@ -74,41 +75,41 @@ internal class HardwareFactory(
           Order = entity.Order,
           Configuration = entity.Configuration ?? throw new ArgumentException(ConfigurationIsNull, nameof(entity))
         };
+        hardwareBase.Configuration = entity.Configuration;
         break;
       case Business.Contracts.Models.HardwareType.MQTTTasmota:
         mqttEntity = await mqttRepository.GetAsync(entity.Id, cancellationToken);
         if (mqttEntity is null)
           throw new ArgumentException(HardwareConfigurationNotFound, nameof(entity));
-        if (mqttEntity.Port > 65535 || mqttEntity.Port <= 0)
-          throw new ArgumentOutOfRangeException(nameof(entity), PortOutOfRange);
 
-        var tasnotaConfiguration = new MqttConfiguration()
+        var tasmotaConfiguration = new MqttConfiguration()
         {
           Address = mqttEntity.Address,
           Password = GetMqttPassword(mqttEntity.Password, configuration),
           Port = mqttEntity.Port,
-          SubscriptionsIn = [],
+          SubscriptionsIn = [entity.Configuration!],
           SubscriptionsOut = [],
           UserName = mqttEntity.Username,
           UseTLS = mqttEntity.UseTLS == 1
         };
 
-        hardwareBase = new MqttTasmota(tasnotaConfiguration, configuration.SslCertificate)
+        hardwareBase = new MqttTasmota(tasmotaConfiguration, configuration.SslCertificate)
         {
           Id = entity.Id,
           Name = entity.Name,
           Enabled = entity.Enabled != 0,
           Order = entity.Order,
-          Configuration = entity.Configuration ?? throw new ArgumentException(ConfigurationIsNull, nameof(entity))
+          Configuration = JsonSerializer.Serialize(tasmotaConfiguration.Clone(withPassword))
         };
         break;
       case Business.Contracts.Models.HardwareType.Dummy:
-        hardwareBase = new Dummy()
+        hardwareBase = new Dummy
         {
           Id = entity.Id,
           Name = entity.Name,
           Enabled = entity.Enabled != 0,
-          Order = entity.Order
+          Order = entity.Order,
+          Configuration = entity.Configuration
         };
         break;
       default:
@@ -119,7 +120,6 @@ internal class HardwareFactory(
     if (hardwareBase is null)
       return null;
 
-    hardwareBase.Configuration = entity.Configuration;
     hardwareBase.LogLevel = (LogLevel)entity.LogLevel;
     return hardwareBase;
   }
@@ -139,9 +139,9 @@ internal class HardwareFactory(
           Id = request.Id,
           Name = request.Name,
           Enabled = request.Enabled,
-          Order = request.Order,
-          Configuration = request.Configuration ?? throw new ArgumentException(ConfigurationIsNull, nameof(request))
+          Order = request.Order
         };
+
         await mqttRepository.CreateAsync(hardwareBase, cancellationToken);
         break;
       case Business.Contracts.Models.HardwareType.MQTTTasmota:
@@ -153,17 +153,18 @@ internal class HardwareFactory(
           Name = request.Name,
           Enabled = request.Enabled,
           Order = request.Order,
-          Configuration = request.Configuration ?? throw new ArgumentException(ConfigurationIsNull, nameof(request))
+          Configuration = mqttConf.SubscriptionsIn[0]
         };
         await mqttRepository.CreateAsync(hardwareBase, cancellationToken);
         break;
       case Business.Contracts.Models.HardwareType.Dummy:
-        hardwareBase = new Dummy()
+        hardwareBase = new Dummy
         {
           Id = request.Id,
           Name = request.Name,
           Enabled = request.Enabled,
-          Order = request.Order
+          Order = request.Order,
+          Configuration = request.Configuration
         };
         break;
       default:
@@ -173,7 +174,6 @@ internal class HardwareFactory(
     if (hardwareBase is null)
       return null;
 
-    hardwareBase.Configuration = request.Configuration;
     hardwareBase.LogLevel = request.LogLevel;
     return hardwareBase;
   }

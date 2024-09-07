@@ -96,7 +96,7 @@ public class HardwareRepositoryTests
     var expected1 = await CreateHardwareInDatabaseAsync(connection);
 
     var hardwareFactory = Substitute.For<IHardwareInfrastructureFactory>();
-    hardwareFactory.CreateAsync(Arg.Any<HardwareEntity>(), Arg.Any<CancellationToken>())
+    hardwareFactory.CreateAsync(Arg.Any<HardwareEntity>(), true, Arg.Any<CancellationToken>())
       .Returns(a => HardwareHelper.GetFakeHardware(a.ArgAt<HardwareEntity>(0)));
 
     var sut = new SutBuilder()
@@ -105,7 +105,7 @@ public class HardwareRepositoryTests
     .Build();
 
     // Act
-    var result = await sut.GetAsync(expected1.Id, CancellationToken.None);
+    var result = await sut.GetAsync(expected1.Id, true, CancellationToken.None);
 
     // Assert
     Assert.NotNull(result);
@@ -127,7 +127,7 @@ public class HardwareRepositoryTests
     .Build();
 
     // Act
-    var result = await sut.GetAsync(expected.Id, CancellationToken.None);
+    var result = await sut.GetAsync(expected.Id, true, CancellationToken.None);
 
     // Assert
     Assert.Null(result);
@@ -351,7 +351,7 @@ public class HardwareRepositoryTests
     var expected1 = await CreateHardwareInDatabaseAsync(connection);
     var expected2 = await CreateHardwareInDatabaseAsync(connection);
     var hardwareFactory = Substitute.For<IHardwareInfrastructureFactory>();
-    hardwareFactory.CreateAsync(Arg.Any<HardwareEntity>(), Arg.Any<CancellationToken>())
+    hardwareFactory.CreateAsync(Arg.Any<HardwareEntity>(), true, Arg.Any<CancellationToken>())
       .Returns(a => HardwareHelper.GetFakeHardware(a.ArgAt<HardwareEntity>(0)));
 
 
@@ -361,7 +361,7 @@ public class HardwareRepositoryTests
         .Build();
 
     // Act
-    var result = await sut.GetListAsync(CancellationToken.None);
+    var result = await sut.GetListAsync(true, CancellationToken.None);
 
     // Assert
     Assert.Equal(2, result.Count());
@@ -385,7 +385,7 @@ public class HardwareRepositoryTests
     var sut = new SutBuilder().WithIDBConnection(connection).Build();
 
     // Act
-    var result = await sut.GetListAsync(CancellationToken.None);
+    var result = await sut.GetListAsync(true, CancellationToken.None);
 
     // Assert
     Assert.Empty(result);

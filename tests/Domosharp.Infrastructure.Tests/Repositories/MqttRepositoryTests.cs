@@ -65,11 +65,11 @@ public class MqttRepositoryTests
 
     var mqttConfiguration = new MqttConfiguration()
     {
-      Address = entity.Address??string.Empty,
+      Address = entity.Address ?? string.Empty,
       Port = entity.Port,
-      Password = RetreivePassword( entity.Password, key, iv),
+      Password = RetreivePassword(entity.Password!, key, iv),
       UserName = entity.Username,
-      UseTLS = entity.UseTLS!=0,
+      UseTLS = entity.UseTLS != 0,
       SubscriptionsIn = [faker.Random.Word()],
       SubscriptionsOut = [faker.Random.Word()]
     };
@@ -110,10 +110,8 @@ public class MqttRepositoryTests
     return Convert.ToBase64String(memoryStream.ToArray());
   }
 
-  private static string? RetreivePassword(string? password, string key, string iv)
+  private static string? RetreivePassword(string password, string key, string iv)
   {
-    if (string.IsNullOrEmpty(password))
-      return null;
     var bKey = Convert.FromBase64String(key);
     var bIV = Convert.FromBase64String(iv);
     var aes = Aes.Create();

@@ -4,24 +4,31 @@ using Domosharp.Business.Contracts.Repositories;
 
 using MediatR;
 
+using System.Transactions;
+
 namespace Domosharp.Business.Implementation.Handlers.Commands.Hardwares;
 
 public class DeleteHardwareCommandHandler(
     IHardwareRepository hardwareRepository,
+    IMqttRepository mqttRepository,
     IMainWorker mainWorker
   ) : IRequestHandler<DeleteHardwareCommand, bool>
 {
-  private readonly IHardwareRepository _hardwareRepository = hardwareRepository ?? throw new ArgumentNullException(nameof(hardwareRepository));
-
   public async Task<bool> Handle(DeleteHardwareCommand request, CancellationToken cancellationToken)
   {
-    var hardware = await _hardwareRepository.GetAsync(request.Id, cancellationToken);
+    using var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+    var hardware = await hardwareRepository.GetAsync(request.Id, false, cancellationToken);
     if (hardware is null)
       return false;
 
-    if (!await _hardwareRepository.DeleteAsync(request.Id, cancellationToken))
+    if (hardware.Type is Contracts.Models.HardwareType.MQTTTasmota or Contracts.Models.HardwareType.MQTT
+      && !await mqttRepository.DeleteAsync(request.Id, cancellationToken))
+      return false;
+
+    if (!await hardwareRepository.DeleteAsync(request.Id, cancellationToken))
       return false;
     mainWorker.DeleteHardware(request.Id);
+    transactionScope.Complete();
     return true;
   }
 }

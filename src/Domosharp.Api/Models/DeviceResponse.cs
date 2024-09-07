@@ -18,6 +18,8 @@ namespace Domosharp.Api.Models
       Order = device.Order;
       Protected = device.Protected;
       SpecificParameters = device.SpecificParameters;
+      Value = device.Value;
+      Index = device.Index;
     }
 
     public int Id { get; init; }
@@ -43,5 +45,9 @@ namespace Domosharp.Api.Models
     public bool Protected { get; init; }
 
     public string? SpecificParameters { get; init; }
+
+    public decimal? Value { get; init; }
+
+    public int? Index { get; init; }
   }
 }

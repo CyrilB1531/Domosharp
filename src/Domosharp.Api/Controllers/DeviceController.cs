@@ -42,7 +42,7 @@ public class DeviceController(IMediator mediator) : ControllerBase
   {
     var query = new GetAllDevicesQuery() { HardwareId = id };
     var result = (await mediator.Send(query, cancellationToken)).ToList();
-    if(result.Count == 0)
+    if (result.Count == 0)
       return NoContent();
     return Ok(result.Select(a => new DeviceResponse(a)).ToList());
   }

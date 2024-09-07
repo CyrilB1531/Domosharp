@@ -1,7 +1,6 @@
 ﻿using Bogus;
-
-using Domosharp.Business.Contracts;
 using Domosharp.Business.Contracts.Commands.Hardwares;
+using Domosharp.Business.Contracts.Factories;
 using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
@@ -50,10 +49,48 @@ public class CreateHardwareCommandHandlerTests
     mainWorker.Received(1).AddHardware(Arg.Any<IHardware>());
   }
 
+  [Fact]
+  public async Task Create_WithUnknownHardware_ReturnsNull()
+  {
+    // Arrange
+    var faker = new Faker();
+
+    var command = new CreateHardwareCommand()
+    {
+      Name = faker.Random.Words(),
+      Enabled = faker.Random.Bool(),
+      Type = HardwareType.END,
+      LogLevel = faker.PickRandom<LogLevel>(),
+      Order = faker.Random.Int(1),
+      Configuration = faker.Random.Words()
+    };
+
+    var hardwareFactory = Substitute.For<IHardwareFactory>();
+    hardwareFactory.CreateAsync(Arg.Any<CreateHardwareParams>(), CancellationToken.None).Returns((IHardware?)null);
+
+    var hardwareRepository = Substitute.For<IHardwareRepository>();
+
+    var mainWorker = Substitute.For<IMainWorker>();
+
+    var sut = new SutBuilder()
+        .WithHardwareRepository(hardwareRepository)
+        .WithMainWorker(mainWorker)
+        .WithHardwareFactory(hardwareFactory)
+        .Build();
+
+    // Act
+    var result = await sut.Handle(command, CancellationToken.None);
+
+    // Assert
+    await hardwareRepository.Received(0).CreateAsync(Arg.Any<IHardware>(), Arg.Any<CancellationToken>());
+    mainWorker.Received(0).AddHardware(Arg.Any<IHardware>());
+    Assert.Null(result);
+  }
+
   private class SutBuilder
   {
     private IHardwareRepository _hardwareRepository;
-    private readonly IHardwareFactory _hardwareFactory;
+    private IHardwareFactory _hardwareFactory;
     private IMainWorker _mainWorker;
 
     public SutBuilder()
@@ -66,6 +103,12 @@ public class CreateHardwareCommandHandlerTests
     public SutBuilder WithHardwareRepository(IHardwareRepository hardwareRepository)
     {
       _hardwareRepository = hardwareRepository;
+      return this;
+    }
+
+    public SutBuilder WithHardwareFactory(IHardwareFactory hardwareFactory)
+    {
+      _hardwareFactory = hardwareFactory;
       return this;
     }
 

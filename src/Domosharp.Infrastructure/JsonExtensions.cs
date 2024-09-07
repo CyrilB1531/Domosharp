@@ -7,7 +7,9 @@ namespace Domosharp.Infrastructure
 {
   internal static class JsonExtensions
   {
-    public static JsonSerializerOptions FullObjectOnDeserializing { get
+    public static JsonSerializerOptions FullObjectOnDeserializing
+    {
+      get
       {
         var options = new JsonSerializerOptions()
         {
@@ -31,7 +33,7 @@ namespace Domosharp.Infrastructure
   internal class ShutterOptionJsonConverter : JsonConverter<ShutterOption>
   {
     public override ShutterOption Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-      => new (reader.GetByte());
+      => new(reader.GetByte());
 
     public override void Write(Utf8JsonWriter writer, ShutterOption value, JsonSerializerOptions options) => writer.WriteNumberValue(value.GetValue());
   }

@@ -1,10 +1,11 @@
-﻿using Domosharp.Business.Contracts;
+﻿using Domosharp.Business.Contracts.Factories;
 using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Repositories;
 using Domosharp.Infrastructure.Factories;
 using Domosharp.Infrastructure.Repositories;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using MQTTnet.Adapter;
 using MQTTnet.Client;
 using MQTTnet.Diagnostics;
@@ -18,6 +19,7 @@ public static class HardwareConfigureServicesFactory
   public static IServiceCollection AddHardwareServices(this IServiceCollection services)
   {
     services.AddTransient<IHardwareServiceFactory, HardwareServiceFactory>();
+    services.AddTransient<IDeviceServiceFactory, DeviceServiceFactory>();
     services.AddTransient<IHardwareRepository, HardwareRepository>();
     services.AddTransient<MqttRepository>();
     services.AddTransient(a => (IMqttRepository)a.GetRequiredService<MqttRepository>());

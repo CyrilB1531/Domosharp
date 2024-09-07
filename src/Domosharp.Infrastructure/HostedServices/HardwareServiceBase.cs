@@ -1,6 +1,8 @@
-﻿using Domosharp.Business.Contracts.HostedServices;
+﻿using Domosharp.Business.Contracts.Factories;
+using Domosharp.Business.Contracts.HostedServices;
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
+using Domosharp.Infrastructure.Factories;
 
 using DotNetCore.CAP;
 
@@ -13,14 +15,17 @@ namespace Domosharp.Infrastructure.HostedServices;
 public abstract class HardwareServiceBase : IHardwareService
 {
   private bool _isStopRequested;
+  protected readonly IDeviceServiceFactory DeviceServiceFactory;
   protected readonly IDeviceRepository DeviceRepository;
   protected readonly ICapPublisher CapPublisher;
   protected readonly IHardware Hardware;
   protected readonly ILogger Logger;
+  protected readonly List<IDeviceService> DeviceServices;
 
   protected HardwareServiceBase(ICapPublisher capPublisher,
     IDeviceRepository deviceRepository,
     IHardware hardware,
+    IDeviceServiceFactory deviceServiceFactory,
     ILogger logger)
   {
     DeviceRepository = deviceRepository;
@@ -28,18 +33,33 @@ public abstract class HardwareServiceBase : IHardwareService
     Hardware = hardware;
     IsStarted = false;
     IsStopRequested = false;
+    DeviceServiceFactory = deviceServiceFactory;
+    DeviceServices = [];
     Logger = logger;
   }
 
   public abstract Task ConnectAsync(CancellationToken cancellationToken);
   public abstract Task DisconnectAsync(CancellationToken cancellationToken);
 
-  public void CreateDevice(object? sender, DeviceEventArgs deviceEventArgs)
+  public virtual Task<Device?> CreateDeviceAsync(Device device, CancellationToken cancellationToken = default)
   {
-    var result = DeviceRepository.CreateAsync(deviceEventArgs.Device, CancellationToken.None).GetAwaiter().GetResult();
-    if (result is null)
-      return;
-    deviceEventArgs.Device = result;
+    return DeviceRepository.CreateAsync(device, cancellationToken);
+  }
+
+  public virtual async Task<IDeviceService?> CreateDeviceServiceAsync(Device device, CancellationToken cancellationToken = default)
+  {
+    var deviceService = await DeviceServiceFactory.CreateDeviceServiceAsync(device, cancellationToken);
+    if (deviceService is not null)
+      DeviceServices.Add(deviceService);
+    return deviceService;
+  }
+
+  public virtual Task DeleteDeviceServiceAsync(Device device, CancellationToken cancellationToken = default)
+  {
+    var deviceService = DeviceServices.Find(a => a.Device == device);
+    if(deviceService is not null)
+      DeviceServices.Remove(deviceService);
+    return Task.CompletedTask;
   }
 
   public void UpdateDevice(object? sender, DeviceEventArgs deviceEventArgs)
@@ -130,7 +150,6 @@ public abstract class HardwareServiceBase : IHardwareService
     if (!Hardware.Enabled)
       return;
 
-    Hardware.CreateDevice += CreateDevice;
     Hardware.UpdateDevice += UpdateDevice;
 
     await ConnectAsync(cancellationToken);
@@ -144,7 +163,6 @@ public abstract class HardwareServiceBase : IHardwareService
     await DisconnectAsync(cancellationToken);
     IsStarted = false;
 
-    Hardware.CreateDevice -= CreateDevice;
     Hardware.UpdateDevice -= UpdateDevice;
   }
 

@@ -1,5 +1,7 @@
 ﻿using Domosharp.Business.Contracts.Models;
 
+using DotNetCore.CAP;
+
 using MediatR;
 
 

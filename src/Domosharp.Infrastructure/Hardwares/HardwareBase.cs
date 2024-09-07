@@ -1,4 +1,5 @@
 ﻿using Domosharp.Business.Contracts.Models;
+
 using Microsoft.Extensions.Logging;
 
 namespace Domosharp.Infrastructure.Hardwares;
