@@ -91,6 +91,26 @@ public class DeviceControllerTests
     Assert.IsType<NoContentResult>(result.Result);
   }
 
+
+  [Fact]
+  public async Task GetDevices1_WithoutDevices_ReturnsNoContent()
+  {
+    // Arrange
+    var mediator = Substitute.For<IMediator>();
+    mediator
+        .Send(Arg.Any<GetDevicesQuery>(), Arg.Any<CancellationToken>())
+        .Returns(_ => []);
+
+    var sut = new SutBuilder().WithMediator(mediator).Build();
+
+    // Act
+    var result = await sut.GetListAsync(false, false, CancellationToken.None);
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.IsType<NoContentResult>(result.Result);
+  }
+
   [Fact]
   public async Task Create_WithGoodDevice_ReturnsOk()
   {

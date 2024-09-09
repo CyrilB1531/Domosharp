@@ -149,6 +149,40 @@ public class DeviceRepositoryTests
   }
 
   [Fact]
+  public async Task Create_WithNoOrderInDevice_InsertDataWithIdAsOrder()
+  {
+    // Arrange
+    var connection = FakeDBConnectionFactory.GetConnection();
+    var sut = new SutBuilder(connection).Build();
+    var hardware = GetHardware();
+    await connection.InsertAsync(hardware);
+
+    var device = CreateDevice(hardwareId: hardware.Id, use0AsOrder: true);
+
+    // Act
+    await sut.CreateAsync(device, CancellationToken.None);
+
+    // Assert
+    var selectParams = new
+    {
+      device.HardwareId,
+      device.DeviceId
+    };
+    var entity = await connection.FindAsync<DeviceEntity>(a => a.Where($"{nameof(DeviceEntity.HardwareId):C} = {nameof(selectParams.HardwareId):P} AND {nameof(DeviceEntity.DeviceId):C} = {nameof(selectParams.DeviceId):P}").WithParameters(selectParams));
+    Assert.Single(entity);
+    var e = entity.First();
+    Assert.Equal(device.Name, e.Name);
+    Assert.Equal(device.Active ? 1 : 0, e.Active);
+    Assert.Equal(device.BatteryLevel, e.BatteryLevel);
+    Assert.Equal(device.Favorite ? 1 : 0, e.Favorite);
+    Assert.NotEqual(0, e.Id);
+    Assert.Equal(device.Protected ? 1 : 0, e.Protected);
+    Assert.Equal(device.SignalLevel, e.SignalLevel);
+    Assert.Equal(device.SpecificParameters, e.SpecificParameters);
+    Assert.Equal((int)device.Type, e.DeviceType);
+  }
+
+  [Fact]
   public async Task Create_TwoDevices_InsertData()
   {
     // Arrange
@@ -497,7 +531,7 @@ public class DeviceRepositoryTests
     public DeviceRepository Build() => new(_connection, _validator);
   }
 
-  private static Device CreateDevice(int? id = null, int? hardwareId = null, string? deviceId = null)
+  private static Device CreateDevice(int? id = null, int? hardwareId = null, string? deviceId = null, bool use0AsOrder = false)
   {
     var faker = new Faker();
 
@@ -513,7 +547,7 @@ public class DeviceRepositoryTests
       Active = faker.Random.Bool(),
       Favorite = faker.Random.Bool(),
       LastUpdate = faker.Date.Recent(),
-      Order = faker.Random.Int(1),
+      Order = use0AsOrder ? 0 : faker.Random.Int(1),
       Protected = faker.Random.Bool(),
       Type = faker.PickRandom<DeviceType>(),
       Index = faker.Random.Int(1, 500),
