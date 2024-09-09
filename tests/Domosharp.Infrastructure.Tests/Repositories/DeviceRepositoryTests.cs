@@ -239,10 +239,10 @@ public class DeviceRepositoryTests
 
     var hardware = await CreateHardwareInDatabaseAsync(connection);
 
-    var expected1 = await CreateDeviceInDatabaseAsync(connection, hardware, false, false);
-    var expected2 = await CreateDeviceInDatabaseAsync(connection, hardware, false, true);
-    var expected3 = await CreateDeviceInDatabaseAsync(connection, hardware, true, false);
-    var expected4 = await CreateDeviceInDatabaseAsync(connection, hardware, true, true);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, false, false);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, false, true);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, true, false);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, true, true);
 
     // Act
     var result = await sut.GetListAsync(active, favorite, CancellationToken.None);
