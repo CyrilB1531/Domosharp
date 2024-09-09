@@ -44,6 +44,35 @@ public class DeviceControllerTests
   }
 
   [Fact]
+  public async Task GetDevices1_WithDevicesDefined_ReturnsOk()
+  {
+    // Arrange
+    var expected = new Device
+    {
+      Id = 5
+    };
+
+    var mediator = Substitute.For<IMediator>();
+    mediator
+        .Send(Arg.Any<GetDevicesQuery>(), Arg.Any<CancellationToken>())
+        .Returns(_ => [expected]);
+
+    var sut = new SutBuilder().WithMediator(mediator).Build();
+
+    // Act
+    var result = await sut.GetListAsync(false, false, CancellationToken.None);
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.IsType<OkObjectResult>(result.Result);
+    var values = (IEnumerable<DeviceResponse>)((OkObjectResult)result.Result).Value!;
+    Assert.NotNull(values);
+    Assert.Single(values);
+    Assert.Equal(expected.Id, values.First().Id);
+
+  }
+
+  [Fact]
   public async Task GetDevices_WithoutData_ReturnsNoContent()
   {
     // Arrange

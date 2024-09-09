@@ -1,4 +1,5 @@
-﻿using Dapper.FastCrud;
+﻿using Dapper;
+using Dapper.FastCrud;
 
 using Domosharp.Business.Contracts.Models;
 using Domosharp.Business.Contracts.Repositories;
@@ -8,6 +9,7 @@ using Domosharp.Infrastructure.Mappers;
 using FluentValidation;
 
 using System.Data;
+using System.Text;
 
 namespace Domosharp.Infrastructure.Repositories;
 
@@ -59,6 +61,8 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
         throw new ArgumentOutOfRangeException(nameof(device), error.ErrorMessage);
     }
     var entity = device.MapToEntity(GetMaxId());
+    if (entity.Order == 0)
+      entity.Order = entity.Id;
     await connection.InsertAsync(entity);
     return entity.MapToModel();
   }
@@ -92,6 +96,29 @@ public class DeviceRepository(IDbConnection connection, IValidator<Device> valid
   public async Task<IEnumerable<Device>> GetListAsync(int hardwareId, CancellationToken cancellation = default)
   {
     var result = await connection.FindAsync<DeviceEntity>(statement => statement.Where($"{nameof(Device.HardwareId):C} = {nameof(hardwareId):P}").WithParameters(new { hardwareId }));
-    return result.Select(a => a.MapToModel());
+    return result.OrderBy(a => a.Order).Select(a => a.MapToModel());
+  }
+
+  public async Task<IEnumerable<Device>> GetListAsync(bool onlyActives, bool onlyFavorites, CancellationToken cancellation = default)
+  {
+    var query = new StringBuilder();
+    query.Append("SELECT * FROM Device");
+    if(onlyActives || onlyFavorites)
+    {
+      query.Append(" WHERE");
+      if (onlyFavorites)
+      {
+        query.Append(" [Favorite] = 1");
+        if (onlyActives)
+          query.Append(" AND");
+      }
+      if (onlyActives)
+      {
+        query.Append(" [Active] = 1 AND [HardwareId] IN(SELECT HardwareId FROM Hardware WHERE [Enabled] = 1)");
+      }
+    }
+
+    var result = await connection.QueryAsync<DeviceEntity>(query.ToString());
+    return result.OrderBy(a=>a.Order).Select(a => a.MapToModel());
   }
 }

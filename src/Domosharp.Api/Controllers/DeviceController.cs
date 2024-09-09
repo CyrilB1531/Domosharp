@@ -47,6 +47,19 @@ public class DeviceController(IMediator mediator) : ControllerBase
     return Ok(result.Select(a => new DeviceResponse(a)).ToList());
   }
 
+  [HttpGet()]
+  [ProducesDefaultResponseType]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
+  public async Task<ActionResult<IEnumerable<DeviceResponse>>> GetListAsync([FromQuery]bool actives, bool favorites ,CancellationToken cancellationToken)
+  {
+    var query = new GetDevicesQuery() {  OnlyActives = actives, OnlyFavorites = favorites };
+    var result = (await mediator.Send(query, cancellationToken)).ToList();
+    if (result.Count == 0)
+      return NoContent();
+    return Ok(result.Select(a => new DeviceResponse(a)).ToList());
+  }
+
   [HttpDelete("{id}")]
   public async Task<ActionResult> DeleteAsync(int id, CancellationToken cancellationToken)
   {

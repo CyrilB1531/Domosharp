@@ -226,6 +226,31 @@ public class DeviceRepositoryTests
     CheckEntity(item.MapToEntity(item.Id), expected1);
   }
 
+  [Theory]
+  [InlineData(false, false, 4)]
+  [InlineData(false, true, 2)]
+  [InlineData(true, false, 2)]
+  [InlineData(true, true, 1)]
+  public async Task GetDevices_WithActiveOrFavorite_ReturnsDevices(bool active, bool favorite, int count)
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    var sut = new SutBuilder(connection).Build();
+
+    var hardware = await CreateHardwareInDatabaseAsync(connection);
+
+    var expected1 = await CreateDeviceInDatabaseAsync(connection, hardware, false, false);
+    var expected2 = await CreateDeviceInDatabaseAsync(connection, hardware, false, true);
+    var expected3 = await CreateDeviceInDatabaseAsync(connection, hardware, true, false);
+    var expected4 = await CreateDeviceInDatabaseAsync(connection, hardware, true, true);
+
+    // Act
+    var result = await sut.GetListAsync(active, favorite, CancellationToken.None);
+
+    // Assert
+    Assert.Equal(count, result.Count());
+  }
+
   [Fact]
   public async Task Update_WithoutDeviceName_ThrowsArgumentException()
   {
@@ -379,9 +404,13 @@ public class DeviceRepositoryTests
         hardware.Type = 1;
       }).Generate();
 
-  private static async Task<DeviceEntity> CreateDeviceInDatabaseAsync(IDbConnection connection, IHardware hardware)
+  private static async Task<DeviceEntity> CreateDeviceInDatabaseAsync(IDbConnection connection, IHardware hardware, bool? active = null, bool? favorite= null)
   {
     var entity = CreateDeviceEntity(hardware);
+    if (active is not null)
+      entity.Active = active.Value ? 1 : 0;
+    if (favorite is not null)
+      entity.Favorite = favorite.Value ? 1 : 0;
 
     var command = connection.CreateCommand();
     command.CommandText = "SELECT MAX(Id) + 1 FROM [Device]";
