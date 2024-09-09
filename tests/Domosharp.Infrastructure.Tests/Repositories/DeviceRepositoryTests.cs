@@ -149,6 +149,40 @@ public class DeviceRepositoryTests
   }
 
   [Fact]
+  public async Task Create_WithNoOrderInDevice_InsertDataWithIdAsOrder()
+  {
+    // Arrange
+    var connection = FakeDBConnectionFactory.GetConnection();
+    var sut = new SutBuilder(connection).Build();
+    var hardware = GetHardware();
+    await connection.InsertAsync(hardware);
+
+    var device = CreateDevice(hardwareId: hardware.Id, use0AsOrder: true);
+
+    // Act
+    await sut.CreateAsync(device, CancellationToken.None);
+
+    // Assert
+    var selectParams = new
+    {
+      device.HardwareId,
+      device.DeviceId
+    };
+    var entity = await connection.FindAsync<DeviceEntity>(a => a.Where($"{nameof(DeviceEntity.HardwareId):C} = {nameof(selectParams.HardwareId):P} AND {nameof(DeviceEntity.DeviceId):C} = {nameof(selectParams.DeviceId):P}").WithParameters(selectParams));
+    Assert.Single(entity);
+    var e = entity.First();
+    Assert.Equal(device.Name, e.Name);
+    Assert.Equal(device.Active ? 1 : 0, e.Active);
+    Assert.Equal(device.BatteryLevel, e.BatteryLevel);
+    Assert.Equal(device.Favorite ? 1 : 0, e.Favorite);
+    Assert.NotEqual(0, e.Id);
+    Assert.Equal(device.Protected ? 1 : 0, e.Protected);
+    Assert.Equal(device.SignalLevel, e.SignalLevel);
+    Assert.Equal(device.SpecificParameters, e.SpecificParameters);
+    Assert.Equal((int)device.Type, e.DeviceType);
+  }
+
+  [Fact]
   public async Task Create_TwoDevices_InsertData()
   {
     // Arrange
@@ -224,6 +258,31 @@ public class DeviceRepositoryTests
 
     var item = result.First();
     CheckEntity(item.MapToEntity(item.Id), expected1);
+  }
+
+  [Theory]
+  [InlineData(false, false, 4)]
+  [InlineData(false, true, 2)]
+  [InlineData(true, false, 2)]
+  [InlineData(true, true, 1)]
+  public async Task GetDevices_WithActiveOrFavorite_ReturnsDevices(bool active, bool favorite, int count)
+  {
+    // Arrange
+    using var connection = FakeDBConnectionFactory.GetConnection();
+    var sut = new SutBuilder(connection).Build();
+
+    var hardware = await CreateHardwareInDatabaseAsync(connection);
+
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, false, false);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, false, true);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, true, false);
+    _ = await CreateDeviceInDatabaseAsync(connection, hardware, true, true);
+
+    // Act
+    var result = await sut.GetListAsync(active, favorite, CancellationToken.None);
+
+    // Assert
+    Assert.Equal(count, result.Count());
   }
 
   [Fact]
@@ -379,9 +438,13 @@ public class DeviceRepositoryTests
         hardware.Type = 1;
       }).Generate();
 
-  private static async Task<DeviceEntity> CreateDeviceInDatabaseAsync(IDbConnection connection, IHardware hardware)
+  private static async Task<DeviceEntity> CreateDeviceInDatabaseAsync(IDbConnection connection, IHardware hardware, bool? active = null, bool? favorite= null)
   {
     var entity = CreateDeviceEntity(hardware);
+    if (active is not null)
+      entity.Active = active.Value ? 1 : 0;
+    if (favorite is not null)
+      entity.Favorite = favorite.Value ? 1 : 0;
 
     var command = connection.CreateCommand();
     command.CommandText = "SELECT MAX(Id) + 1 FROM [Device]";
@@ -468,7 +531,7 @@ public class DeviceRepositoryTests
     public DeviceRepository Build() => new(_connection, _validator);
   }
 
-  private static Device CreateDevice(int? id = null, int? hardwareId = null, string? deviceId = null)
+  private static Device CreateDevice(int? id = null, int? hardwareId = null, string? deviceId = null, bool use0AsOrder = false)
   {
     var faker = new Faker();
 
@@ -484,7 +547,7 @@ public class DeviceRepositoryTests
       Active = faker.Random.Bool(),
       Favorite = faker.Random.Bool(),
       LastUpdate = faker.Date.Recent(),
-      Order = faker.Random.Int(1),
+      Order = use0AsOrder ? 0 : faker.Random.Int(1),
       Protected = faker.Random.Bool(),
       Type = faker.PickRandom<DeviceType>(),
       Index = faker.Random.Int(1, 500),
